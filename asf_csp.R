@@ -31,7 +31,6 @@ fond <- asf_drom(fond, id = "IRISrD_CODE")
 ###############################################################################
 ######################################################### NETTOYAGE DES DONNEES
 
-# Telechargement des donnees 
 data <- read.csv2("input/asf_csp/TableTypo15.csv")
 data <- data[, c(1, ncol(data))]
 
@@ -46,10 +45,7 @@ data$IRISr <- ifelse(nchar(data$IRISr) == 8,
 
 # Creation des zooms
 z <- asf_zoom(fond,
-              places = c("Paris", "Marseille", "Lyon", "Toulouse", "Nantes", "Montpellier",
-                         "Bordeaux", "Lille", "Rennes", "Reims", "Dijon","Strasbourg",
-                         "Angers", "Grenoble", "Clermont-Ferrand", "Tours", "Perpignan",
-                         "Besancon", "Rouen", "La Rochelle", "Le Havre", "Nice", "Mulhouse"),
+              places = c("5", "4"),
               r = 10000)
 
 zoom <- z$zooms
@@ -123,6 +119,55 @@ mf_label(point,
 #        border = "red",
 #        lwd = 1, 
 #        add = TRUE)
+
+pal <- c(
+  "#ca0020",
+  "#dd494c",
+  "#ef9377",
+  "#f8c3ac",
+  "#fdebe3", 
+  "#f0f0f0", 
+  "#d1d1d1", 
+  "#acacac", 
+  "#767676", 
+  "#404040"
+)
+
+# Ouvrir un fichier PDF
+pdf("output/asf_csp/explo_decile.pdf", width = 8, height = 8)
+
+# Boucle pour realiser toutes les cartes et les exporter en PDF
+for (i in 2:(length(names(fondata)) - 2)) {
+  
+  # Nom de la variable
+  varname <- names(fondata)[i]
+  
+  # Seuils
+  d <- quantile(fondata[[i]], probs = seq(0, 1, 0.1), na.rm = TRUE)
+  
+  # Carte choroplethe
+  mf_map(fondata,
+         var = varname,
+         type = "choro",
+         breaks = d, 
+         pal = pal,
+         border = NA)
+  
+  # Contours departements
+  mf_map(dep,
+         col = "white",
+         lwd = 1,
+         add = TRUE)
+  
+  # Labels
+  mf_label(label,
+           var = "label",
+           col = "#000000",
+           font = 1)
+}
+
+# Fermer le PDF
+dev.off()
 
 ###############################################################################
 #################################################################### GRAPHIQUES
