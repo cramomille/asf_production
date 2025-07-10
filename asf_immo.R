@@ -31,25 +31,26 @@ comr <- asf_fond(geom,
 ############################################ TRAITEMENT DES FICHIERS DE DONNEES
 
 # Chargement du fichier FILOCOM -----------------------------------------------
-comr_revenu <- read.csv("input/decile_revucm_comar.csv")
+comr_revenu <- read.csv("input/asf_immo/decile_revucm_comar.csv")
 comr_revenu <- comr_revenu[, c("comar", "d5_2022")]
 names(comr_revenu)[1] <- "COMR_CODE"
 
 
 # Chargement des fichiers DVF -------------------------------------------------
-download <- "&mode=grid&download=1"
+pre <- "https://sharedocs.huma-num.fr/wl/?id="
+suf <- "&mode=grid&download=1"
                        
-dvf <- list(dvf_2014 = paste0("https://sharedocs.huma-num.fr/wl/?id=vp4DTsuh5ctsBwGTzCSzgdKvZ3HnreAf", download),
-            dvf_2015 = paste0("https://sharedocs.huma-num.fr/wl/?id=QJ3AiWOCYVCkYN6Z0FzqI2yMM7Fu0Jhp", download),
-            dvf_2016 = paste0("https://sharedocs.huma-num.fr/wl/?id=OshgupIqPkg70hEMB7DdSpbsFDuTeAMN", download),
-            dvf_2017 = paste0("https://sharedocs.huma-num.fr/wl/?id=E0Xc2Ahyb0UUGoHFL6JR704dpQnUE7wK", download),
-            dvf_2018 = paste0("https://sharedocs.huma-num.fr/wl/?id=I22yu03q8W53XEFSb0voebmdi0ORUzUl", download),
-            dvf_2019 = paste0("https://sharedocs.huma-num.fr/wl/?id=6muOpXEStHm1Y56YUNv93n14zx2QSQ9i", download),
-            dvf_2020 = paste0("https://sharedocs.huma-num.fr/wl/?id=iq9S63LevHYxoDMCkL01bNQBeE4YlWYx", download),
-            dvf_2021 = paste0("https://sharedocs.huma-num.fr/wl/?id=XYI1SDuWfYRXfCtuz0jvcz7C4LuLi5Qg", download),
-            dvf_2022 = paste0("https://sharedocs.huma-num.fr/wl/?id=5sYwnTlHiFAiTtgD9ZqUeNuEAUTo5T7F", download),
-            dvf_2023 = paste0("https://sharedocs.huma-num.fr/wl/?id=4l09Pfh8OGPICchf9PQEw4X4kdvjOR5P", download),
-            dvf_2024 = paste0("https://sharedocs.huma-num.fr/wl/?id=oSMYbBxT6OWaePSLPydnXOJYoQE3tOID", download)
+dvf <- list(dvf_2014 = paste0(pre, "vp4DTsuh5ctsBwGTzCSzgdKvZ3HnreAf", suf),
+            dvf_2015 = paste0(pre, "QJ3AiWOCYVCkYN6Z0FzqI2yMM7Fu0Jhp", suf),
+            dvf_2016 = paste0(pre, "OshgupIqPkg70hEMB7DdSpbsFDuTeAMN", suf),
+            dvf_2017 = paste0(pre, "E0Xc2Ahyb0UUGoHFL6JR704dpQnUE7wK", suf),
+            dvf_2018 = paste0(pre, "I22yu03q8W53XEFSb0voebmdi0ORUzUl", suf),
+            dvf_2019 = paste0(pre, "6muOpXEStHm1Y56YUNv93n14zx2QSQ9i", suf),
+            dvf_2020 = paste0(pre, "iq9S63LevHYxoDMCkL01bNQBeE4YlWYx", suf),
+            dvf_2021 = paste0(pre, "XYI1SDuWfYRXfCtuz0jvcz7C4LuLi5Qg", suf),
+            dvf_2022 = paste0(pre, "5sYwnTlHiFAiTtgD9ZqUeNuEAUTo5T7F", suf),
+            dvf_2023 = paste0(pre, "4l09Pfh8OGPICchf9PQEw4X4kdvjOR5P", suf),
+            dvf_2024 = paste0(pre, "oSMYbBxT6OWaePSLPydnXOJYoQE3tOID", suf)
 )
 
 a <- read.csv(dvf[[9]])
@@ -95,11 +96,11 @@ appart <- filter_dvf(comr_dvf, "COMR_CODE", "Appartement")
 
 comr_dvf <- merge(maison, appart, by = "COMR_CODE", all = TRUE)
 
-rm(a, b, dvf, maison, appart)
+rm(a, b, pre, suf, dvf, maison, appart)
 
 
 # Chargement du fichier de l'Observatoire des Territoires ---------------------
-loyer <- read.csv("input/base_OT_2024.csv", skip = 2, header = TRUE, sep = ";")
+loyer <- read.csv("input/asf_immo/base_OT_2024.csv", skip = 2, header = TRUE, sep = ";")
 
 loyer[, 3] <- as.numeric(loyer[, 3])
 loyer[, 4] <- as.numeric(loyer[, 4])
@@ -244,24 +245,17 @@ mf_map(fondata,
        type = "typo",
        pal = palette,
        border = NA)
+
 mf_map(dep, 
        col = "white", 
        lwd = 1, 
        add = TRUE)
-mf_map(point,
-       add = TRUE)
+
+# mf_map(point,
+#        add = TRUE)
+
 mf_label(label, 
          var = "label")
-
-mf_map(fondata,
-       var = "typo_a", 
-       type = "typo",
-       pal = palette,
-       border = NA)
-
-# # Export pour la carte web de Nicolas
-# test <- st_transform(fondata, crs = "EPSG:4326")
-# st_write(test, "web_immo.geojson")
 
 
 ###############################################################################
@@ -275,51 +269,50 @@ mf_map(fondata,
 # tabl <- tabl[, c(2, 16)]
 # 
 # aav <- merge(tabl, com, by.x = "COMF_CODE", by.y = "COMFA_CODE")
-
-
-# Fonction pour recuperer les typologies associees aux id d'une cellule
-x <- function(id_multi, df) {
-  # Separation des id
-  id <- trimws(unlist(strsplit(id_multi, "\\|")))
-  # Recuperation des typologies associees a ces id
-  typo <- df$TAAV2017[match(id, df$COMF_CODE)]
-  # Retour des typologies distinctes
-  paste(sort(unique(typo)), collapse = " | ")
-}
-
-# Application
-tmp$aav <- sapply(tmp$COMF_CODE_MULTI, x, df = aav)
-
-
-# Fonction pour recuperer la typologie majoritaire
-y <- function(id_multi, df) {
-  # Separation des id
-  id <- trimws(unlist(strsplit(id_multi, "\\|")))
-  # Recuperation des typologies associees a ces id
-  typo <- df$TAAV2017[match(id, df$COMF_CODE)]
-  typo <- typo[!is.na(typo)]
-  
-  # Si vide (aucun code trouve), retourner NA
-  if (length(typo) == 0) return(NA)
-  
-  # Tableau de fréquence
-  freq <- table(typo)
-  freq_max <- max(freq)
-  maj <- as.numeric(names(freq)[freq == freq_max])
-  maj <- max(maj)
-  
-  return(maj)
-}
-
-# Application
-tmp$aav_maj <- sapply(tmp$COMF_CODE_MULTI, y, df = aav)
+# 
+# 
+# # Fonction pour recuperer les typologies associees aux id d'une cellule
+# x <- function(id_multi, df) {
+#   # Separation des id
+#   id <- trimws(unlist(strsplit(id_multi, "\\|")))
+#   # Recuperation des typologies associees a ces id
+#   typo <- df$TAAV2017[match(id, df$COMF_CODE)]
+#   # Retour des typologies distinctes
+#   paste(sort(unique(typo)), collapse = " | ")
+# }
+# 
+# # Application
+# tmp$aav <- sapply(tmp$COMF_CODE_MULTI, x, df = aav)
+# 
+# 
+# # Fonction pour recuperer la typologie majoritaire
+# y <- function(id_multi, df) {
+#   # Separation des id
+#   id <- trimws(unlist(strsplit(id_multi, "\\|")))
+#   # Recuperation des typologies associees a ces id
+#   typo <- df$TAAV2017[match(id, df$COMF_CODE)]
+#   typo <- typo[!is.na(typo)]
+#   
+#   # Si vide (aucun code trouve), retourner NA
+#   if (length(typo) == 0) return(NA)
+#   
+#   # Tableau de fréquence
+#   freq <- table(typo)
+#   freq_max <- max(freq)
+#   maj <- as.numeric(names(freq)[freq == freq_max])
+#   maj <- max(maj)
+#   
+#   return(maj)
+# }
+# 
+# # Application
+# tmp$aav_maj <- sapply(tmp$COMF_CODE_MULTI, y, df = aav)
 
 
 ###############################################################################
 
 tabl <-  tabl[, c("COMR_CODE", "TAAV2017")]
 tabl <- tabl[!duplicated(tabl$COMR_CODE), ]
-
 
 tmp <- merge(fondata, tabl, by = "COMR_CODE")
 
@@ -353,19 +346,21 @@ asf_plot_typo(d = tmp,
 
 ###############################################################################
 ############################################################ GRAPHIQUES MATRICE
-
 # Definition des fichiers et des valeurs de division
-data <- list(dvf_2014 = "https://sharedocs.huma-num.fr/wl/?id=vp4DTsuh5ctsBwGTzCSzgdKvZ3HnreAf&mode=grid&download=1",
-             dvf_2015 = "https://sharedocs.huma-num.fr/wl/?id=QJ3AiWOCYVCkYN6Z0FzqI2yMM7Fu0Jhp&mode=grid&download=1",
-             dvf_2016 = "https://sharedocs.huma-num.fr/wl/?id=OshgupIqPkg70hEMB7DdSpbsFDuTeAMN&mode=grid&download=1",
-             dvf_2017 = "https://sharedocs.huma-num.fr/wl/?id=E0Xc2Ahyb0UUGoHFL6JR704dpQnUE7wK&mode=grid&download=1",
-             dvf_2018 = "https://sharedocs.huma-num.fr/wl/?id=I22yu03q8W53XEFSb0voebmdi0ORUzUl&mode=grid&download=1",
-             dvf_2019 = "https://sharedocs.huma-num.fr/wl/?id=6muOpXEStHm1Y56YUNv93n14zx2QSQ9i&mode=grid&download=1",
-             dvf_2020 = "https://sharedocs.huma-num.fr/wl/?id=iq9S63LevHYxoDMCkL01bNQBeE4YlWYx&mode=grid&download=1",
-             dvf_2021 = "https://sharedocs.huma-num.fr/wl/?id=XYI1SDuWfYRXfCtuz0jvcz7C4LuLi5Qg&mode=grid&download=1",
-             dvf_2022 = "https://sharedocs.huma-num.fr/wl/?id=5sYwnTlHiFAiTtgD9ZqUeNuEAUTo5T7F&mode=grid&download=1",
-             dvf_2023 = "https://sharedocs.huma-num.fr/wl/?id=4l09Pfh8OGPICchf9PQEw4X4kdvjOR5P&mode=grid&download=1",
-             dvf_2024 = "https://sharedocs.huma-num.fr/wl/?id=oSMYbBxT6OWaePSLPydnXOJYoQE3tOID&mode=grid&download=1"
+pre <- "https://sharedocs.huma-num.fr/wl/?id="
+suf <- "&mode=grid&download=1"
+
+data <- list(dvf_2014 = paste0(pre, "vp4DTsuh5ctsBwGTzCSzgdKvZ3HnreAf", suf),
+             dvf_2015 = paste0(pre, "QJ3AiWOCYVCkYN6Z0FzqI2yMM7Fu0Jhp", suf),
+             dvf_2016 = paste0(pre, "OshgupIqPkg70hEMB7DdSpbsFDuTeAMN", suf),
+             dvf_2017 = paste0(pre, "E0Xc2Ahyb0UUGoHFL6JR704dpQnUE7wK", suf),
+             dvf_2018 = paste0(pre, "I22yu03q8W53XEFSb0voebmdi0ORUzUl", suf),
+             dvf_2019 = paste0(pre, "6muOpXEStHm1Y56YUNv93n14zx2QSQ9i", suf),
+             dvf_2020 = paste0(pre, "iq9S63LevHYxoDMCkL01bNQBeE4YlWYx", suf),
+             dvf_2021 = paste0(pre, "XYI1SDuWfYRXfCtuz0jvcz7C4LuLi5Qg", suf),
+             dvf_2022 = paste0(pre, "5sYwnTlHiFAiTtgD9ZqUeNuEAUTo5T7F", suf),
+             dvf_2023 = paste0(pre, "4l09Pfh8OGPICchf9PQEw4X4kdvjOR5P", suf),
+             dvf_2024 = paste0(pre, "oSMYbBxT6OWaePSLPydnXOJYoQE3tOID", suf)
 )
 
 rd1 <- c(5720, #2013
@@ -438,10 +433,10 @@ for (i in seq_along(data)) {
   
   # Stockage des resultats
   maison[[i]] <- data.frame(
-    abord = round(decile_mai / rd9[i], 1)
+    abord = round(decile_mai / rd5[i], 1)
   )
   appart[[i]] <- data.frame(
-    abord = round(decile_app / rd9[i], 1)
+    abord = round(decile_app / rd5[i], 1)
   )
   
   # Renommer les colonnes pour chaque annee
@@ -452,15 +447,15 @@ for (i in seq_along(data)) {
 }
 
 # Fusionner tous les tableaux par la colonne des deciles
-maison_d9 <- do.call(cbind, maison)
-appart_d9 <- do.call(cbind, appart)
+maison_d5 <- do.call(cbind, maison)
+appart_d5 <- do.call(cbind, appart)
 
 # Dessin des graphiques -------------------------------------------------------
 breaks <- c(0, 2, 4, 6, 8, 10, Inf)
-tableau <- appart_d9
+tableau <- appart_d5
 
 breaks <- c(0, 4, 7, 9, 12, 18, Inf)
-tableau <- maison_d9
+tableau <- maison_d5
 
 tableau$decile = c("10%","20%","30%","40%","50%","60%","70%","80%","90%")
 
@@ -493,4 +488,3 @@ ggplot(tableau_long, aes(x = annee, y = decile, fill = classe)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +  # rotation des labels
   labs(title = "Évolution des valeurs par décile et année", 
        fill = "Classe de Valeur")
-  
