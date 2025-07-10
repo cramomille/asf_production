@@ -12,23 +12,27 @@ library(mapsf)
 ########################################################## FONDS D'ALIETTE ROUX
 
 # Lecture des fichiers
-mar <- asf_mar()
+mar <- asf_mar(maille = "irisrd")
 
-# Selection des iris
-iris <- mar$ar02$sf.irisr.d
-iris <- iris[, c(1,2,7)]
-colnames(iris) <- c("IRIS_CODE", "IRIS_LIB", "P21_POP", "geometry")
-st_geometry(iris) <- "geometry"
+tabl <- mar$tabl
+geom <- mar$geom
+
+# Agregation des iris en irisrd
+fond <- asf_fond(f = geom, 
+                 t = tabl, 
+                 by = "IRISF_CODE", 
+                 maille = "IRISrD_CODE", 
+                 keep = "DEP")
 
 # Repositionnement des geometries des DROM
-fond <- asf_drom(iris, id = "IRIS_CODE")
+fond <- asf_drom(fond, id = "IRISrD_CODE")
 
 
 ###############################################################################
 ######################################################### NETTOYAGE DES DONNEES
 
 # Telechargement des donnees 
-data <- read.csv2("input/TableTypo15.csv")
+data <- read.csv2("input/asf_csp/TableTypo15.csv")
 data <- data[, c(1, ncol(data))]
 
 # Ajout des zeros manquants dans les identifiants
@@ -59,14 +63,12 @@ fond <- asf_simplify(fond, keep = 0.1)
 fondata <- asf_fondata(f = fond,
                        z = zoom,
                        d = data,
-                       by.x = "IRIS_CODE",
+                       by.x = "IRISrD_CODE",
                        by.y = "IRISr")
 
-# Creation des limites departementales
-dep <- fond
-dep$DEP_CODE <- substr(dep$IRIS_CODE, 1, 2)
-dep <- asf_borders(dep,
-                   by = "DEP_CODE", 
+# Recuperation des limites departementales
+dep <- asf_borders(fond,
+                   by = "DEP", 
                    keep = 0.05)
 
 palette <- c("01" = "#94282f",
@@ -123,47 +125,36 @@ mf_label(point,
 #        add = TRUE)
 
 ###############################################################################
-mar <- asf_mar(sf = FALSE)
+#################################################################### GRAPHIQUES
 
-# Telechargement des donnees 
-data <- read.csv2("input/TableTypo15.csv")
-data <- data[, c(1, ncol(data))]
+tabl <- tabl[!duplicated(tabl$IRISrD_CODE), ]
 
-# Ajout des zeros manquants dans les identifiants
-data$IRISr <- ifelse(nchar(data$IRISr) == 8,
-                     paste0("0", data$IRISr),
-                     data$IRISr)
-tmp <- data
-
-tabl <- mar$ar02$d.irisr.app
-tmp <- merge(tmp, tabl, by.x = "IRISr", by.y = "IRISrD_CODE", all.x = TRUE)
-tmp <- tmp[, c(1, 2, 24:27)]
-
+tmp <- merge(data, tabl[, c(3, 16)], by.x = "IRISr", by.y = "IRISrD_CODE")
 tmp$clust15 <- as.character(tmp$clust15)
 
 paramx <- c("1", "2", "3", "4", "5", "6",
             "7", "8", "11", "13",
             "9", "10",  "12",
             "14", "15")
+
 paramy <- c("0", "1", "2", "3", "4", "5")
+
 palette <- c("#554596","#8779b7",
              "#2581c4","#86c2eb","#bee2e9",
              "#aad29a","#04a64b","#6cbe99","#bbd043",
              "#ffeea4","#ffd744","#f7a941","#f07f3c","#e40521","#94282f")
 
+asf_plot_typo(d = tmp,
+              vars = "clust15",
+              typo = "TAAV2017", 
+              order.v = paramx, 
+              order.t = paramy, 
+              pal = palette
+              )
 
-
-asf_plotypo(data = tmp,
-            vars = "clust15",
-            typo = "TAAV2017", 
-            order_vars = paramx, 
-            order_typo = paramy, 
-            pal = palette
-            )
-
-asf_plotvar(data = tmp, 
-            vars = "clust15", 
-            typo = "TAAV2017",
-            order_vars = paramx, 
-            order_typo = paramy
-            )
+asf_plot_vars(d = tmp, 
+              vars = "clust15", 
+              typo = "TAAV2017",
+              order.v = paramx, 
+              order.t = paramy
+              )

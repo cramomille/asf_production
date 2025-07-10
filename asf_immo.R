@@ -7,10 +7,8 @@
 library(sf)
 library(asf)
 library(mapsf)
-
 library(ggplot2)
 library(reshape2)
-
 
 ###############################################################################
 ########################################################## FONDS D'ALIETTE ROUX

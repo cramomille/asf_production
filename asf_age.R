@@ -7,14 +7,13 @@
 library(sf)
 library(asf)
 library(mapsf)
-
 library(readxl)
 
 ###############################################################################
 ########################################################## FONDS D'ALIETTE ROUX
 
 # Lecture du fichier
-irisr_e <- st_read("input/IRISrE/AR04b_sf_IRISrE.shp")
+irisr_e <- st_read("input/asf_age/IRISrE/AR04b_sf_IRISrE.shp")
 irisr_e <- st_transform(irisr_e, crs = "EPSG:2154")
 
 # Repositionnement des DROM
@@ -33,7 +32,7 @@ point <- z$point
 irisr_e_simply <- asf_simplify(f = irisr_e, keep = 0.1)
 
 # Lecture des donnees
-data <- read_xlsx("input/DataDemo.xlsx")
+data <- read_xlsx("input/asf_age/DataDemo.xlsx")
 
 # Ajout des zeros manquants dans les identifiants
 data$IRISrE_CODE <- ifelse(nchar(data$IRISrE_CODE) < 9,
@@ -86,6 +85,7 @@ mf_label(label,
          col = "#000000", 
          font = 1)
 
+
 ###############################################################################
 ############################################################## TYPO DES CLASSES
 
@@ -124,7 +124,7 @@ result <- cbind(moy_typo, ecart_moy, z_score)
 # Graphiques ------------------------------------------------------------------
 
 # Ouvrir un fichier PDF
-pdf("output/graph_clust12.pdf", width = 12, height = 7)
+pdf("output/asf_age/graph_clust12.pdf", width = 12, height = 7)
 
 # Boucle sur chaque classe
 for (i in 1:nrow(result)) {
@@ -161,17 +161,18 @@ for (i in 1:nrow(result)) {
 # Fermer le PDF
 dev.off()
 
+
 ###############################################################################
 ################################################################## CARTES EXPLO
+
+# Ouvrir un fichier PDF
+pdf("output/asf_age/explo_q6.pdf", width = 12, height = 7)
 
 # Boucle pour realiser toutes les cartes et les exporter en PDF
 for (i in 2:(length(names(fondata)) - 4)) {
 
   # Nom de la variable
   varname <- names(fondata)[i]
-
-  # Ouvrir un fichier PDF
-  pdf(file = paste0("carte_", varname, ".pdf"), width = 8, height = 8)
 
   # Palette
   pal <- asf_palette(pal = "peche", nb = 6)
@@ -198,7 +199,7 @@ for (i in 2:(length(names(fondata)) - 4)) {
            var = "label",
            col = "#000000",
            font = 1)
-
-  # Fermer le PDF
-  dev.off()
 }
+
+# Fermer le PDF
+dev.off()
