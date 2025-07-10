@@ -13,7 +13,7 @@ library(readxl)
 ########################################################## FONDS D'ALIETTE ROUX
 
 # Lecture du fichier
-irisr_e <- st_read("input/IRISrE/AR04b_sf_IRISrE.shp")
+irisr_e <- st_read("input/asf_vote/IRISrE/AR04b_sf_IRISrE.shp")
 
 # Repositionnement des DROM
 irisr_e <- asf_drom(f = irisr_e, id = "IRISE_C")
@@ -32,7 +32,7 @@ point <- z$point
 irisr_e_simply <- asf_simplify(f = irisr_e, keep = 0.1)
 
 # Lecture des donnees
-data <- read_xlsx("input/data2022.xlsx")
+data <- read_xlsx("input/asf_vote/data2022.xlsx")
 
 # Ajout des zeros manquants dans les identifiants
 data$IRISrE_CODE <- ifelse(nchar(data$IRISrE_CODE) < 9,
@@ -55,13 +55,13 @@ dep$DEP_CODE <- substr(dep$IRISE_C, 1, 2)
 dep <- asf_borders(f = dep, by = "DEP_CODE")
 
 # Boucle pour realiser toutes les cartes et les exporter en PDF
+# Ouvrir un fichier PDF
+pdf(file = paste0("output/asf_vote/explo_q6.pdf"), width = 8, height = 8)
+
 for (i in 7:21) {
   
   # Nom de la variable
   varname <- names(fondata)[i]
-  
-  # Ouvrir un fichier PDF
-  pdf(file = paste0("output/carte_", varname, ".pdf"), width = 8, height = 8)
   
   # Palette
   pal <- asf_palette(pal = "posidonie", nb = 6)
@@ -88,10 +88,10 @@ for (i in 7:21) {
            var = "label",
            col = "#000000",
            font = 1)
-  
-  # Fermer le PDF
-  dev.off()
 }
+
+# Fermer le PDF
+dev.off()
 
 ###############################################################################
 ################################################################### CARTES AXES
