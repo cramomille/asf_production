@@ -122,9 +122,11 @@ loyer <- loyer[!grepl("75056|13055|69123", loyer$Code), ]
 
 loyer <- rbind(arr, loyer)
 
-# Utilisation de l'Indice de reference des loyers pour estimer les loyers de 2022
-loyer$loyer_mai <- round(loyer$loyer_mai / 1.0247 / 1.035, 2)
-loyer$loyer_app <- round(loyer$loyer_app / 1.0247 / 1.035, 2)
+# Utilisation de l'Indice de reference des loyers (INSEE) pour estimer les loyers de 2022
+# T1 2022 : 133.93 => T1 2024 : 143.46 
+# 143.46 * 100 / 133.93 = 107.12
+loyer$loyer_mai <- round(loyer$loyer_mai / 1.0712, 2)
+loyer$loyer_app <- round(loyer$loyer_app / 1.0712, 2)
 
 # Chargement du nombre de menages par commune pour ponderer les loyers entre communes lors du regroupement
 pop <- read.csv("C:/Users/Antoine Beroud/Desktop/casd/export/TREVPOP_export_02/donnees/fra/filocom_2022_decile.csv")

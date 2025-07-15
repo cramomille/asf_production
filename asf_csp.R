@@ -121,16 +121,16 @@ mf_label(point,
 #        add = TRUE)
 
 pal <- c(
-  "#ca0020",
-  "#dd494c",
-  "#ef9377",
-  "#f8c3ac",
-  "#fdebe3", 
-  "#f0f0f0", 
-  "#d1d1d1", 
-  "#acacac", 
-  "#767676", 
-  "#404040"
+  "#006757",
+  "#009c79",
+  "#8dc9a4",
+  "#cde4c4",
+  "#ecf4e3", 
+  "#fce4e0", 
+  "#f8c7c8", 
+  "#f08590", 
+  "#e73458", 
+  "#95254c"
 )
 
 # Ouvrir un fichier PDF
@@ -155,7 +155,7 @@ for (i in 2:(length(names(fondata)) - 2)) {
   
   # Contours departements
   mf_map(dep,
-         col = "white",
+         col = "#000000",
          lwd = 1,
          add = TRUE)
   
