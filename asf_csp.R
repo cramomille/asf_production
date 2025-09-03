@@ -8,9 +8,8 @@ library(sf)
 library(asf)
 library(mapsf)
 
-###############################################################################
-########################################################## FONDS D'ALIETTE ROUX
 
+# IMPORT DU FOND D'ALIETTE ROUX -----------------------------------------------
 # Lecture des fichiers
 mar <- asf_mar(maille = "irisrd")
 
@@ -28,9 +27,7 @@ fond <- asf_fond(f = geom,
 fond <- asf_drom(fond, id = "IRISrD_CODE")
 
 
-###############################################################################
-######################################################### NETTOYAGE DES DONNEES
-
+# IMPORT ET NETTOYAGE DU TABLEAU DE DONNEES -----------------------------------
 data <- read.csv2("input/asf_csp/TableTypo15.csv")
 data <- data[, c(1, ncol(data))]
 
@@ -40,9 +37,7 @@ data$IRISr <- ifelse(nchar(data$IRISr) == 8,
                      data$IRISr)
 
 
-###############################################################################
-######################################## UTILISATION DES AUTRES FONCTIONS D'ASF
-
+# TRAITEMENTS A PARTIR DES AUTRES FONCTIONS D'ASF -----------------------------
 # Creation des zooms
 z <- asf_zoom(fond,
               places = c("5", "4"),
@@ -62,27 +57,30 @@ fondata <- asf_fondata(f = fond,
                        by.x = "IRISrD_CODE",
                        by.y = "IRISr")
 
+
+# CREATION DE CARTES ----------------------------------------------------------
 # Recuperation des limites departementales
 dep <- asf_borders(fond,
                    by = "DEP", 
                    keep = 0.05)
 
-palette <- c("01" = "#94282f",
-             "02" = "#e40521",
-             "03" = "#f07f3c",
-             "04" = "#f7a941",
-             "05" = "#ffd744",
-             "06" = "#ffeea4",
-             "07" = "#bbd043",
-             "08" = "#6cbe99",
-             "09" = "#bee2e9",
-             "10" = "#86c2eb",
-             "11" = "#04a64b",
-             "12" = "#2581c4",
-             "13" = "#aad29a",
-             "14" = "#8779b7",
-             "15" = "#554596"
-             )
+# Definition d'une palette de couleurs
+pal <- c("01" = "#94282f",
+         "02" = "#e40521",
+         "03" = "#f07f3c",
+         "04" = "#f7a941",
+         "05" = "#ffd744",
+         "06" = "#ffeea4",
+         "07" = "#bbd043",
+         "08" = "#6cbe99",
+         "09" = "#bee2e9",
+         "10" = "#86c2eb",
+         "11" = "#04a64b",
+         "12" = "#2581c4",
+         "13" = "#aad29a",
+         "14" = "#8779b7",
+         "15" = "#554596"
+         )
 
 mf_map(fondata,
        var = "clust15", 
@@ -91,7 +89,7 @@ mf_map(fondata,
        border = NA)
 
 mf_map(dep, 
-       col = "white", 
+       col = "#ffffff", 
        lwd = 1, 
        add = TRUE)
 
@@ -108,6 +106,7 @@ mf_label(point,
          col = "#000000", 
          font = 1)
 
+# Ajout des limites communales dans les zooms
 # fondata$COM_CODE <- substr(fondata$IRIS_CODE, 1, 5)
 # 
 # com <- aggregate(fondata, 
@@ -133,7 +132,7 @@ pal <- c(
   "#95254c"
 )
 
-# Ouvrir un fichier PDF
+# Ouverture d'un fichier PDF
 pdf("output/asf_csp/explo_decile.pdf", width = 8, height = 8)
 
 # Boucle pour realiser toutes les cartes et les exporter en PDF
@@ -153,7 +152,7 @@ for (i in 2:(length(names(fondata)) - 2)) {
          pal = pal,
          border = NA)
   
-  # Contours departements
+  # Contours departementaux
   mf_map(dep,
          col = "#000000",
          lwd = 1,
@@ -166,12 +165,11 @@ for (i in 2:(length(names(fondata)) - 2)) {
            font = 1)
 }
 
-# Fermer le PDF
+# Fermeture du fichier PDF
 dev.off()
 
-###############################################################################
-#################################################################### GRAPHIQUES
 
+# CREATION DE GRAPHIQUES ------------------------------------------------------
 tabl <- tabl[!duplicated(tabl$IRISrD_CODE), ]
 
 tmp <- merge(data, tabl[, c(3, 16)], by.x = "IRISr", by.y = "IRISrD_CODE")

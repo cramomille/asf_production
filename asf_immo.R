@@ -10,9 +10,8 @@ library(mapsf)
 library(ggplot2)
 library(reshape2)
 
-###############################################################################
-########################################################## FONDS D'ALIETTE ROUX
 
+# IMPORT DU FOND D'ALIETTE ROUX -----------------------------------------------
 # Lecture des fichiers
 mar <- asf_mar(maille = "comr")
 
@@ -27,14 +26,11 @@ comr <- asf_fond(geom,
                  keep = "DEP")
 
 
-###############################################################################
-############################################ TRAITEMENT DES FICHIERS DE DONNEES
-
+# IMPORT ET NETTOYAGE DES TABLEAUX DE DONNEES ---------------------------------
 # Chargement du fichier FILOCOM -----------------------------------------------
 comr_revenu <- read.csv("input/asf_immo/decile_revucm_comar.csv")
 comr_revenu <- comr_revenu[, c("comar", "d5_2022")]
 names(comr_revenu)[1] <- "COMR_CODE"
-
 
 # Chargement des fichiers DVF -------------------------------------------------
 pre <- "https://sharedocs.huma-num.fr/wl/?id="
@@ -60,7 +56,7 @@ dvf <- rbind(a, b)
 
 dvf <- dvf[, -c(1, 3, 4, 10, 11)]
 
-# # Explo pour voir les surfaces medianes des biens pour les loyers
+# # Explo pour connaitre les surfaces medianes des biens pour les loyers
 # ma <- dvf[dvf$type == "Maison", ]
 # quantile(ma$surface, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
 # ap <- dvf[dvf$type == "Appartement", ]
@@ -97,7 +93,6 @@ appart <- filter_dvf(comr_dvf, "COMR_CODE", "Appartement")
 comr_dvf <- merge(maison, appart, by = "COMR_CODE", all = TRUE)
 
 rm(a, b, pre, suf, dvf, maison, appart)
-
 
 # Chargement du fichier de l'Observatoire des Territoires ---------------------
 loyer <- read.csv("input/asf_immo/base_OT_2024.csv", skip = 2, header = TRUE, sep = ";")
@@ -148,14 +143,12 @@ comr_loyer <- asf_data(d = loyer,
 rm(arr, arr_com, arr_loyer, pop, loyer)
 
 
-###############################################################################
-################################################################### PACKAGE ASF
-
-# Traitement sur les donnees --------------------------------------------------
+# TRAITEMENTS A PARTIR DES AUTRES FONCTIONS D'ASF -----------------------------
+# Traitement sur les donnees
 data <- merge(comr_revenu, comr_loyer, by = "COMR_CODE", all = TRUE)
 data <- merge(data, comr_dvf, by = "COMR_CODE", all = TRUE)
 
-# Creation du fond et des zooms -----------------------------------------------
+# Creation du fond et des zooms
 fond <- asf_drom(comr, id = "COMR_CODE")
 
 z <- asf_zoom(fond,
@@ -178,9 +171,7 @@ fondata <- asf_fondata(f = fond,
                        by = "COMR_CODE")
 
 
-###############################################################################
-############################################# CALCUL DE L'INDICE D'ABORDABILITE
-
+# CALCUL DE L'INDICE D'ABORDABILITE -------------------------------------------
 # Nombre d'annee de revenu pour acheter un bien
 fondata$abord_mai <- (fondata$median_prix_maison * 0.9) / fondata$d5_2022 
 fondata$abord_app <- (fondata$median_prix_appart * 0.9) / fondata$d5_2022
@@ -198,7 +189,7 @@ q_a <- quantile(fondata$abord_app, probs = c(0.05, 0.25, 0.5, 0.75, 0.95, 1), na
 q_m <- c(4, 7, 9, 12, 18)
 q_a <- c(2, 4, 6, 8, 10)
 
-# Création de la colonne 'typo'
+# Creation de la colonne 'typo'
 fondata$typo_m <- with(fondata, 
                        ifelse(abord_mai < q_m[1] & abord_app_loc < 30, 1,
                        ifelse(abord_mai < q_m[1] & abord_app_loc > 30, 2,
@@ -229,6 +220,8 @@ fondata$typo_a <- with(fondata,
                        ifelse(abord_app >= q_a[5] & abord_app_loc > 30, 12,
                        NA)))))))))))))
 
+
+# CREATION DE CARTES ----------------------------------------------------------
 palette <- c(
   "#00a183","#6561a9",
   "#8ccaae","#9b99cc",
@@ -260,9 +253,7 @@ mf_label(label,
          var = "label")
 
 
-###############################################################################
-################################################################ GRAPHIQUES AAV
-
+# CREATION DE GRAPHIQUES SUR LES AAV ------------------------------------------
 # asf_mar()
 # tmp <- fondata[, c(1, 2, 11, 12)]
 # com <- mar$ar01$sf.comf
@@ -346,8 +337,7 @@ asf_plot_typo(d = tmp,
               order.t = c("q1", "q2", "q3", "q4", "q5", "q6"))
 
 
-###############################################################################
-############################################################ GRAPHIQUES MATRICE
+# CREATION DE GRAPHIQUES SOUS FORME DE MATRICE --------------------------------
 # Definition des fichiers et des valeurs de division
 pre <- "https://sharedocs.huma-num.fr/wl/?id="
 suf <- "&mode=grid&download=1"
@@ -452,7 +442,7 @@ for (i in seq_along(data)) {
 maison_d5 <- do.call(cbind, maison)
 appart_d5 <- do.call(cbind, appart)
 
-# Dessin des graphiques -------------------------------------------------------
+# Creation des graphiques
 breaks <- c(0, 2, 4, 6, 8, 10, Inf)
 tableau <- appart_d5
 
@@ -471,8 +461,7 @@ colnames(tableau_long) <- c("decile", "annee", "valeur")
 tableau_long$classe <- cut(tableau_long$valeur,
                            breaks = breaks,
                            labels = c("1", "2", "3", "4", "5", "6"),
-                           right = FALSE
-)
+                           right = FALSE)
 
 palette <- c("1" = "#00a183",
              "2" = "#8ccaae",

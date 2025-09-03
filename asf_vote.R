@@ -9,15 +9,13 @@ library(asf)
 library(mapsf)
 library(readxl)
 
-###############################################################################
-########################################################## FONDS D'ALIETTE ROUX
 
+# IMPORT DU FOND D'ALIETTE ROUX -----------------------------------------------
 # Lecture du fichier
 irisr_e <- st_read("input/asf_vote/IRISrE/AR04b_sf_IRISrE.shp")
 
 # Repositionnement des DROM
 irisr_e <- asf_drom(f = irisr_e, id = "IRISE_C")
-
 
 # Creation de zooms
 z <- asf_zoom(f = irisr_e, 
@@ -46,17 +44,16 @@ fondata <- asf_fondata(f = irisr_e_simply,
                        by.x = "IRISE_C", 
                        by.y = "IRISrE_CODE")
 
-###############################################################################
-################################################################## CARTES EXPLO
 
+# CREATION DE CARTES EXPLORATOIRES --------------------------------------------
 # Creation des limites departementales
 dep <- fondata
 dep$DEP_CODE <- substr(dep$IRISE_C, 1, 2)
 dep <- asf_borders(f = dep, by = "DEP_CODE")
 
 # Boucle pour realiser toutes les cartes et les exporter en PDF
-# Ouvrir un fichier PDF
-pdf(file = paste0("output/asf_vote/explo_q6.pdf"), width = 8, height = 8)
+# Ouverture d'un fichier PDF
+pdf(file = paste0("output/asf_vote/explo_decile.pdf"), width = 8, height = 8)
 
 for (i in 7:21) {
   
@@ -64,22 +61,33 @@ for (i in 7:21) {
   varname <- names(fondata)[i]
   
   # Palette
-  pal <- asf_palette(pal = "posidonie", nb = 6)
+  pal <- c(
+    "#95254c",
+    "#e73458",
+    "#f08590",
+    "#f8c7c8",
+    "#fce4e0",
+    "#ecf4e3",
+    "#cde4c4",
+    "#8dc9a4",
+    "#009c79",
+    "#006757"
+  )
   
   # Seuils
-  q6 <- quantile(fondata[[i]], probs = c(0, 0.05, 0.25, 0.5, 0.75, 0.95, 1), na.rm = TRUE)
+  d <- quantile(fondata[[i]], probs = seq(0, 1, 0.1), na.rm = TRUE)
   
   # Carte choroplethe
   mf_map(fondata,
          var = varname,
          type = "choro",
-         breaks = q6,
-         pal = pal,
+         breaks = d,
+         pal = rev(pal),
          border = NA)
   
   # Contours departements
   mf_map(dep,
-         col = "white",
+         col = "#000000",
          lwd = 1,
          add = TRUE)
   
@@ -90,12 +98,11 @@ for (i in 7:21) {
            font = 1)
 }
 
-# Fermer le PDF
+# Fermeture du fichier PDF
 dev.off()
 
-###############################################################################
-################################################################### CARTES AXES
 
+# CREAION DE CARTES SUR LES AXES
 pal <- asf_palette("div", nb = 8)
 
 var <- "Dim.1"
@@ -114,7 +121,7 @@ mf_map(fondata,
        pal = pal,
        border = NA)
 mf_map(dep, 
-       col = "white", 
+       col = "#ffffff", 
        lwd = 1, 
        add = TRUE)
 mf_label(label, 
@@ -122,15 +129,13 @@ mf_label(label,
          col = "#000000", 
          font = 1)
 
-###############################################################################
-################################################################ CARTES CLASSES
 
+# CREATION DE CARTES SUR LES CLASSES
 var <- "Clust17"
 nb <- length(unique(fondata[[var]]))
 pal <- grDevices::rainbow(nb)
 
 pal <- colorRampPalette(brewer.pal(12, "Paired"))(nb)
-
 
 mf_map(fondata, 
        var = var, 
@@ -138,7 +143,7 @@ mf_map(fondata,
        pal = pal,
        border = NA)
 mf_map(dep, 
-       col = "white", 
+       col = "#ffffff", 
        lwd = 1, 
        add = TRUE)
 mf_label(label, 
@@ -146,8 +151,8 @@ mf_label(label,
          col = "#000000", 
          font = 1)
 
-###############################################################################
-############################################################## TYPO DES CLASSES
+
+# TYPOLOGIE DES CLASSES -------------------------------------------------------
 
 x <- fondata
 
@@ -180,10 +185,8 @@ names(z_score) <- paste0(var_names, "_zscore")
 # Fusion des resultats
 result <- cbind(moy_typo, ecart_moy, z_score)
 
-
 # Graphiques ------------------------------------------------------------------
-
-# Ouvrir un fichier PDF
+# Ouverture d'un fichier PDF
 pdf("output/graph_clust17.pdf", width = 12, height = 7)
 
 # Boucle sur chaque classe
@@ -218,5 +221,5 @@ for (i in 1:nrow(result)) {
   abline(h = 0, lty = 2)
 }
 
-# Fermer le PDF
+# Fermeture du fichier PDF
 dev.off()

@@ -9,9 +9,8 @@ library(asf)
 library(mapsf)
 library(readxl)
 
-###############################################################################
-########################################################## FONDS D'ALIETTE ROUX
 
+# IMPORT DU FOND D'ALIETTE ROUX -----------------------------------------------
 # Lecture du fichier
 irisr_e <- st_read("input/asf_age/IRISrE/AR04b_sf_IRISrE.shp")
 irisr_e <- st_transform(irisr_e, crs = "EPSG:2154")
@@ -76,7 +75,7 @@ mf_map(fondata,
        border = NA)
 
 mf_map(dep, 
-       col = "white", 
+       col = "#ffffff", 
        lwd = 1, 
        add = TRUE)
 
@@ -86,8 +85,7 @@ mf_label(label,
          font = 1)
 
 
-###############################################################################
-############################################################## TYPO DES CLASSES
+# TYPOLOGIE DES CLASSES -------------------------------------------------------
 
 x <- fondata
 
@@ -120,10 +118,8 @@ names(z_score) <- paste0(var_names, "_zscore")
 # Fusion des resultats
 result <- cbind(moy_typo, ecart_moy, z_score)
 
-
 # Graphiques ------------------------------------------------------------------
-
-# Ouvrir un fichier PDF
+# Ouverture d'un fichier PDF
 pdf("output/asf_age/graph_clust12.pdf", width = 12, height = 7)
 
 # Boucle sur chaque classe
@@ -140,7 +136,7 @@ for (i in 1:nrow(result)) {
   # Noms des barres
   group_labels <- c(
     paste0("Moy_", var_names),
-    paste0("Écart_", var_names),
+    paste0("Ecart_", var_names),
     paste0("Z_", var_names)
   )
   
@@ -158,14 +154,12 @@ for (i in 1:nrow(result)) {
   abline(h = 0, lty = 2)
 }
 
-# Fermer le PDF
+# Fermeture du fichier PDF
 dev.off()
 
 
-###############################################################################
-################################################################## CARTES EXPLO
-
-# Ouvrir un fichier PDF
+# CREATION DE CARTES EXPLORATOIRES --------------------------------------------
+# Ouverture d'un fichier PDF
 pdf("output/asf_age/explo_q6.pdf", width = 12, height = 7)
 
 # Boucle pour realiser toutes les cartes et les exporter en PDF
@@ -190,7 +184,7 @@ for (i in 2:(length(names(fondata)) - 4)) {
 
   # Contours departements
   mf_map(dep,
-         col = "white",
+         col = "#ffffff",
          lwd = 1,
          add = TRUE)
 
@@ -201,5 +195,5 @@ for (i in 2:(length(names(fondata)) - 4)) {
            font = 1)
 }
 
-# Fermer le PDF
+# Fermeture du fichier PDF
 dev.off()

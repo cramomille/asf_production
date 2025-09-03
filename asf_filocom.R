@@ -8,9 +8,8 @@ library(sf)
 library(asf)
 library(mapsf)
 
-###############################################################################
-########################################################## FONDS D'ALIETTE ROUX
 
+# IMPORT DU FOND D'ALIETTE ROUX -----------------------------------------------
 # Lecture des fichiers
 mar <- asf_mar(maille = "comr")
 
@@ -28,9 +27,7 @@ fond <- asf_fond(f = geom,
 fond <- asf_drom(fond, id = "COMR_CODE")
 
 
-###############################################################################
-####################################################################### DONNEES
-
+# IMPORT ET NETTOYAGE DU TABLEAU DE DONNEES -----------------------------------
 data <- read.csv("C:/Users/Antoine Beroud/Desktop/casd/export/TREVPOP_export_04/donnees/cah_decile.csv")
 summary(nchar(data$COM))
 
@@ -63,9 +60,8 @@ fond <- asf_simplify(fond, keep = 0.5)
 fondata <- asf_fondata(fond, zoom, data, by = "id_tmp")
 
 
-###############################################################################
-################################################################## CARTOGRAPHIE
-
+# CREATION DE CARTES ----------------------------------------------------------
+# Definition d'une palette de couleurs
 pal <- c(
   "1" = "#fddaac",
   "2" = "#f8c8d0",
