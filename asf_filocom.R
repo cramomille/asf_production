@@ -57,7 +57,7 @@ label <- z$labels
 
 fond <- asf_simplify(fond, keep = 0.5)
 
-fondata <- asf_fondata(fond, zoom, data, by = "id_tmp")
+fondata <- asf_fondata(fond, zoom, data[, -1], by = "id_tmp")
 
 
 # CREATION DE CARTES ----------------------------------------------------------

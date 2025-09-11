@@ -220,6 +220,16 @@ fondata$typo_a <- with(fondata,
                        ifelse(abord_app >= q_a[5] & abord_app_loc > 30, 12,
                        NA)))))))))))))
 
+# Comptage des effectifs et conversion en pourcentage
+tmp <- table(fondata$typo_m, useNA = "ifany")
+prop_m <- round(100 * tmp / sum(tmp), 2)
+prop_m
+
+# Comptage des effectifs et conversion en pourcentage
+tmp <- table(fondata$typo_a, useNA = "ifany")
+prop_a <- round(100 * tmp / sum(tmp), 2)
+prop_a
+
 
 # CREATION DE CARTES ----------------------------------------------------------
 palette <- c(
