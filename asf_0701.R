@@ -1,5 +1,6 @@
 
-#                                           AUTOCORRELATION SPATIALE DES RICHES
+#                                               ASF - SCRIPT DE LA PLANCHE 0701                                          
+#                               AUTOCORRELATION SPATIALE DES PLUS HAUTS REVENUS
 #
 #                                                                antoine beroud
 #                                                                  juillet 2025

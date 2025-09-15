@@ -1,5 +1,6 @@
 
-#                                        ASF - SCRIPT DE LA PLANCHE SUR LE VOTE
+#                                                    ASF - SCRIPT DE LA PLANCHE 
+#                          TYPOLOGIE DES VOTES LORS DES PRESIDENTIELLES DE 2022
 #
 #                                                                antoine beroud
 #                                                                  jean riviere

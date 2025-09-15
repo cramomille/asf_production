@@ -1,5 +1,6 @@
 
-#                                    ASF - SCRIPT DE LA PLANCHE SUR LES REVENUS
+#                                               ASF - SCRIPT DE LA PLANCHE 0700
+#                                          TYPOLOGIE SUR LES DECILES DE REVENUS
 #
 #                                                                antoine beroud
 #                                                           antonine ribardiere
