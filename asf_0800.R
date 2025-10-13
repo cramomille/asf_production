@@ -14,7 +14,7 @@ library(reshape2)
 
 # IMPORT DU FOND D'ALIETTE ROUX -----------------------------------------------
 # Lecture des fichiers
-mar <- asf_mar(maille = "comr")
+mar <- asf_mar(md = "com_xxxx", ma = "com_r2", geom = TRUE)
 
 geom <- mar$geom
 tabl <- mar$tabl
@@ -23,15 +23,15 @@ tabl <- mar$tabl
 comr <- asf_fond(geom, 
                  tabl, 
                  by = "COMF_CODE", 
-                 maille = "COMR_CODE", 
+                 maille = "COMR2_CODE", 
                  keep = "DEP")
 
 
 # IMPORT ET NETTOYAGE DES TABLEAUX DE DONNEES ---------------------------------
 # Chargement du fichier FILOCOM -----------------------------------------------
-comr_revenu <- read.csv("input/asf_immo/decile_revucm_comar.csv")
+comr_revenu <- read.csv("input/asf_0800/decile_revucm_comar.csv")
 comr_revenu <- comr_revenu[, c("comar", "d5_2022")]
-names(comr_revenu)[1] <- "COMR_CODE"
+names(comr_revenu)[1] <- "COMR2_CODE"
 
 # Chargement des fichiers DVF -------------------------------------------------
 pre <- "https://sharedocs.huma-num.fr/wl/?id="
@@ -77,7 +77,7 @@ filter_dvf <- function(dvf, id, type_bien) {
   com_nomb <- tapply(dvf_filtered$prix, dvf_filtered[[id]], length)
   
   # Convertir en data.frame
-  result <- data.frame(COMR_CODE = names(com_prix),
+  result <- data.frame(COMR2_CODE = names(com_prix),
                        prix = as.vector(com_prix),
                        nb = as.vector(com_nomb))
   
@@ -88,15 +88,15 @@ filter_dvf <- function(dvf, id, type_bien) {
   return(result)
 }
 
-maison <- filter_dvf(comr_dvf, "COMR_CODE", "Maison")
-appart <- filter_dvf(comr_dvf, "COMR_CODE", "Appartement")
+maison <- filter_dvf(comr_dvf, "COMR2_CODE", "Maison")
+appart <- filter_dvf(comr_dvf, "COMR2_CODE", "Appartement")
 
-comr_dvf <- merge(maison, appart, by = "COMR_CODE", all = TRUE)
+comr_dvf <- merge(maison, appart, by = "COMR2_CODE", all = TRUE)
 
 rm(a, b, pre, suf, dvf, maison, appart)
 
 # Chargement du fichier de l'Observatoire des Territoires ---------------------
-loyer <- read.csv("input/asf_immo/base_OT_2024.csv", skip = 2, header = TRUE, sep = ";")
+loyer <- read.csv("input/asf_0800/base_OT_2024.csv", skip = 2, header = TRUE, sep = ";")
 
 loyer[, 3] <- as.numeric(loyer[, 3])
 loyer[, 4] <- as.numeric(loyer[, 4])
@@ -125,7 +125,7 @@ loyer$loyer_mai <- round(loyer$loyer_mai / 1.0712, 2)
 loyer$loyer_app <- round(loyer$loyer_app / 1.0712, 2)
 
 # Chargement du nombre de menages par commune pour ponderer les loyers entre communes lors du regroupement
-pop <- read.csv("C:/Users/Antoine Beroud/Desktop/casd/export/TREVPOP_export_02/donnees/fra/filocom_2022_decile.csv")
+pop <- read.csv("C:/Users/Antoine/Desktop/casd/export/TREVPOP_export_02/donnees/fra/filocom_2022_decile.csv")
 pop <- pop[, c(2,13)]
 
 loyer <- merge(loyer, pop, by.x = "Code", by.y = "COM", all.x = TRUE)
@@ -137,7 +137,7 @@ comr_loyer <- asf_data(d = loyer,
                        t = tabl, 
                        by.x = "Code",
                        by.y = "COM_CODE",
-                       maille = "COMR_CODE",
+                       maille = "COMR2_CODE",
                        vars = c(3:6),
                        funs = c("prod1", "prod2", "coef1", "coef2"))
 
@@ -146,11 +146,11 @@ rm(arr, arr_com, arr_loyer, pop, loyer)
 
 # TRAITEMENTS A PARTIR DES AUTRES FONCTIONS D'ASF -----------------------------
 # Traitement sur les donnees
-data <- merge(comr_revenu, comr_loyer, by = "COMR_CODE", all = TRUE)
-data <- merge(data, comr_dvf, by = "COMR_CODE", all = TRUE)
+data <- merge(comr_revenu, comr_loyer, by = "COMR2_CODE", all = TRUE)
+data <- merge(data, comr_dvf, by = "COMR2_CODE", all = TRUE)
 
 # Creation du fond et des zooms
-fond <- asf_drom(comr, id = "COMR_CODE")
+fond <- asf_drom(comr, id = "COMR2_CODE")
 
 z <- asf_zoom(fond,
               places = c("Marseille", "Lyon", "Toulouse", "Nantes", "Montpellier",
@@ -169,7 +169,7 @@ fond <- asf_simplify(fond, keep = 0.1)
 fondata <- asf_fondata(f = fond,
                        z = zoom,
                        d = data,
-                       by = "COMR_CODE")
+                       by = "COMR2_CODE")
 
 
 # CALCUL DE L'INDICE D'ABORDABILITE -------------------------------------------

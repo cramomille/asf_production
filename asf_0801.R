@@ -12,7 +12,7 @@ library(mapsf)
 
 # IMPORT DU FOND D'ALIETTE ROUX -----------------------------------------------
 # Lecture des fichiers
-mar <- asf_mar(maille = "comr")
+mar <- asf_mar(md = "com_xxxx", ma = "com_r2", geom = TRUE)
 
 geom <- mar$geom
 tabl <- mar$tabl
@@ -21,7 +21,7 @@ tabl <- mar$tabl
 comr <- asf_fond(geom, 
                  tabl, 
                  by = "COMF_CODE", 
-                 maille = "COMR_CODE", 
+                 maille = "COMR2_CODE", 
                  keep = "DEP")
 
 

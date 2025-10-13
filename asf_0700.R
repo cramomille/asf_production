@@ -12,7 +12,7 @@ library(mapsf)
 
 # IMPORT DU FOND D'ALIETTE ROUX -----------------------------------------------
 # Lecture des fichiers
-mar <- asf_mar(maille = "comr")
+mar <- asf_mar(md = "com_xxxx", ma = "com_r2", geom = TRUE)
 
 tabl <- mar$tabl
 geom <- mar$geom
@@ -21,23 +21,28 @@ geom <- mar$geom
 fond <- asf_fond(f = geom, 
                  t = tabl, 
                  by = "COMF_CODE", 
-                 maille = "COMR_CODE", 
+                 maille = "COMR2_CODE", 
                  keep = "DEP")
 
 # Repositionnement des geometries des DROM
-fond <- asf_drom(fond, id = "COMR_CODE")
+fond <- asf_drom(fond, id = "COMR2_CODE")
 
 
 # IMPORT ET NETTOYAGE DU TABLEAU DE DONNEES -----------------------------------
-data <- read.csv("C:/Users/Antoine Beroud/Desktop/casd/export/TREVPOP_export_04/donnees/cah_decile.csv")
+data <- read.csv("C:/Users/Antoine/Desktop/casd/export/TREVPOP_export_04/donnees/cah_decile.csv")
 summary(nchar(data$COM))
 
 data$id_tmp <- substr(data$COM, 1, 5)
 data <- data[, c(2,3,7)]
 
-fond$id_tmp <- substr(fond$COMR_CODE, 1, 5)
+fond$id_tmp <- substr(fond$COMR2_CODE, 1, 5)
 
 z <- asf_zoom(f = fond, 
+              places = c("Paris", "Marseille", "Lyon", "Toulouse", "Nantes", "Montpellier",
+                         "Bordeaux", "Lille", "Rennes", "Reims", "Dijon",
+                         "Angers", "Grenoble", "Clermont-Ferrand", "Tours", "Perpignan",
+                         "Besancon", "Rouen", "La Rochelle", "Le Havre", "Nice",
+                         "Orleans", "Troyes", "Bourges", "Dunkerque", "Annecy"), 
               coords = c(0.545, 46.815,
                          2.068, 47.221,
                          -1.548, 43.471,
@@ -46,11 +51,6 @@ z <- asf_zoom(f = fond,
                          3.570, 47.797
                          ), 
               labels = c("Chatellerault", "Vierzon", "Biarritz", "Montereau-Fault-Yonne", "Hirson", "Auxerre"), 
-              places = c("Paris", "Marseille", "Lyon", "Toulouse", "Nantes", "Montpellier",
-                         "Bordeaux", "Lille", "Rennes", "Reims", "Dijon",
-                         "Angers", "Grenoble", "Clermont-Ferrand", "Tours", "Perpignan",
-                         "Besancon", "Rouen", "La Rochelle", "Le Havre", "Nice",
-                         "Orleans", "Troyes", "Bourges", "Dunkerque", "Annecy"), 
               r = 20000)
 
 zoom <- z$zooms
@@ -87,7 +87,7 @@ mf_label(label,
          cex = 0.3)
 
 
-tvma <- read.csv("C:/Users/Antoine Beroud/Desktop/casd/export/TREVPOP_export_06/donnees/cah_tvma.csv")
+tvma <- read.csv("C:/Users/Antoine/Desktop/casd/export/TREVPOP_export_06/donnees/cah_tvma.csv")
 tvma <- tvma[, c(2,3)]
 
 fondtvma <- merge(fondata, tvma, by = "id_tmp", all = TRUE)

@@ -12,7 +12,7 @@ library(mapsf)
 
 # IMPORT DU FOND D'ALIETTE ROUX -----------------------------------------------
 # Lecture des fichiers
-mar <- asf_mar(maille = "irisrd")
+mar <- asf_mar(md = "iris_xxxx", ma = "iris_r2", geom = TRUE)
 
 tabl <- mar$tabl
 geom <- mar$geom
@@ -29,7 +29,7 @@ fond <- asf_drom(fond, id = "IRISrD_CODE")
 
 
 # IMPORT ET NETTOYAGE DU TABLEAU DE DONNEES -----------------------------------
-data <- read.csv2("input/asf_csp/TableTypo15.csv")
+data <- read.csv2("input/asf_0501/TableTypo15.csv")
 data <- data[, c(1, ncol(data))]
 
 # Ajout des zeros manquants dans les identifiants
@@ -86,7 +86,7 @@ pal <- c("01" = "#94282f",
 mf_map(fondata,
        var = "clust15", 
        type = "typo",
-       pal = palette,
+       pal = pal,
        border = NA)
 
 mf_map(dep, 
@@ -134,7 +134,7 @@ pal <- c(
 )
 
 # Ouverture d'un fichier PDF
-pdf("output/asf_csp/explo_decile.pdf", width = 8, height = 8)
+pdf("output/asf_0501/explo_decile.pdf", width = 8, height = 8)
 
 # Boucle pour realiser toutes les cartes et les exporter en PDF
 for (i in 2:(length(names(fondata)) - 2)) {

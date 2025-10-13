@@ -13,7 +13,7 @@ library(readxl)
 
 # IMPORT DU FOND D'ALIETTE ROUX -----------------------------------------------
 # Lecture du fichier
-irisr_e <- st_read("input/asf_age/IRISrE/AR04b_sf_IRISrE.shp")
+irisr_e <- st_read("input/asf_0201/IRISrE/AR04b_sf_IRISrE.shp")
 irisr_e <- st_transform(irisr_e, crs = "EPSG:2154")
 
 # Repositionnement des DROM
@@ -32,7 +32,7 @@ point <- z$point
 irisr_e_simply <- asf_simplify(f = irisr_e, keep = 0.1)
 
 # Lecture des donnees
-data <- read_xlsx("input/asf_age/DataDemo.xlsx")
+data <- read_xlsx("input/asf_0201/DataDemo.xlsx")
 
 # Ajout des zeros manquants dans les identifiants
 data$IRISrE_CODE <- ifelse(nchar(data$IRISrE_CODE) < 9,
@@ -121,7 +121,7 @@ result <- cbind(moy_typo, ecart_moy, z_score)
 
 # Graphiques ------------------------------------------------------------------
 # Ouverture d'un fichier PDF
-pdf("output/asf_age/graph_clust12.pdf", width = 12, height = 7)
+pdf("output/asf_0201/graph_clust12.pdf", width = 12, height = 7)
 
 # Boucle sur chaque classe
 for (i in 1:nrow(result)) {
@@ -161,7 +161,7 @@ dev.off()
 
 # CREATION DE CARTES EXPLORATOIRES --------------------------------------------
 # Ouverture d'un fichier PDF
-pdf("output/asf_age/explo_q6.pdf", width = 12, height = 7)
+pdf("output/asf_0201/explo_q6.pdf", width = 12, height = 7)
 
 # Boucle pour realiser toutes les cartes et les exporter en PDF
 for (i in 2:(length(names(fondata)) - 4)) {

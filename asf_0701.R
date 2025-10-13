@@ -12,10 +12,10 @@ library(MTA)
 
 
 # CHARGEMENT DES DONNEES ------------------------------------------------------
-data <- read.csv("input/asf_riche/decile_revucm_comar.csv")
+data <- read.csv("input/asf_0701/decile_revucm_comar.csv")
 data <- data[, c(2, 123:132)]
 
-mar <- asf_mar(maille = "comr")
+mar <- asf_mar(md = "com_xxxx", ma = "com_r2", geom = TRUE)
 iris <- mar$geom
 tabl <- mar$tabl
 
@@ -24,7 +24,7 @@ iris <- iris[!grepl("^96|^97|^98|^N|^P", iris$IRISF_CODE), ]
 fond <- asf_fond(iris, 
                  tabl, 
                  by = "COMF_CODE", 
-                 maille = "COMR_CODE",
+                 maille = "COMR2_CODE",
                  keep = "DEP")
 
 z <- asf_zoom(fond,
@@ -33,9 +33,6 @@ z <- asf_zoom(fond,
 
 zoom <- z$zooms
 label <- z$labels
-mf_map(zoom)
-mf_label(label, var = "label")
-
 
 fond <- asf_simplify(fond)
 
@@ -44,7 +41,7 @@ dep <- asf_borders(fond, by = "DEP", keep = 0.1)
 fondata <- asf_fondata(f = fond, 
                        z = zoom,
                        d = data, 
-                       by.x = "COMR_CODE", by.y = "comar")
+                       by.x = "COMR2_CODE", by.y = "comar")
 
 
 # TRAITEMENTS -----------------------------------------------------------------
@@ -117,7 +114,7 @@ x$Y <- x$d5_2022
 x$Y <- x$d9_2022 / x$d5_2022
 
 Moran <- x[, c(1,17)]
-Moran$COMR_CODE <- substr(Moran$COMR_CODE, 1, 5)
+Moran$COMR2_CODE <- substr(Moran$COMR2_CODE, 1, 5)
 names(Moran) <- c("code", "Y", "geometry")
 row.names(Moran) <- Moran$code
 
@@ -200,16 +197,3 @@ mf_map(type = "typo", x = Moran, var = "q", val_order = levels(Moran$q),
 mf_map(dep,
        col = "#000",
        add = TRUE)
-
-
-
-
-
-
-
-
-
-
-
-
-
