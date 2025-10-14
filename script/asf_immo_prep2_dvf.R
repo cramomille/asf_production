@@ -28,9 +28,8 @@ annees <- 2014:2024
 
 # Boucle sur chaque année
 for (annee in annees) {
-  
   message("Traitement de l'année : ", annee)
-  
+
   # Lecture et assemblage des fichiers DVF
   fichier_in <- paste0("input/asf_0800/dvf/full_", annee, ".csv")
   DVF <- read.csv(fichier_in, sep = ",", fileEncoding = "UTF-8")
@@ -42,6 +41,11 @@ for (annee in annees) {
   # Etape 2 > Sélection et renommage des variables
   etape2 <- etape1bis %>% select(
     id = id_mutation, 
+    
+    numero_disposition = numero_disposition,
+    adresse_numero = adresse_numero,
+    lot1_numero = lot1_numero,
+    
     disposition = numero_disposition, 
     parcelle = id_parcelle, 
     date = date_mutation, 
@@ -56,8 +60,16 @@ for (annee in annees) {
     longitude)
   
   # Etape 3 > Remplacement des cellules vides par des NA et suppression des NA
+  cols_na_ok <- c("numero_disposition", 
+                  "adresse_numero",
+                  "lot1_numero")
+  
   etape2[etape2 == ""] <- NA
-  etape3 <- etape2 %>% na.omit()
+  etape3 <- etape2[!apply(
+    etape2[ , !(names(etape2) %in% cols_na_ok)],
+    1,
+    function(x) any(is.na(x))
+  ), ]
   
   # Regrouper les transactions selon l'ID, la surface et la vente
   unique <- etape3 %>% distinct(id, prix, surface)
@@ -70,7 +82,9 @@ for (annee in annees) {
   merge <- merge(etape4,etape3, by = "id")
   etape5 <- merge %>% 
     distinct(id, .keep_all = TRUE) %>% 
-    select(id, date, type, nature, codecommune, prix, surface, piece, latitude, longitude)
+    select(id, 
+           numero_disposition, adresse_numero, lot1_numero, 
+           date, type, nature, codecommune, prix, surface, piece, latitude, longitude)
   
   # Modification des formats des colonnes
   etape5$prix <- as.numeric(etape5$prix)
@@ -106,12 +120,13 @@ for (annee in annees) {
   etape7$prixm2 <- round(etape7$prixm2)
   
   # Etape 8 > Structuration du jeu de données final
-  DVFOK <- etape7 %>% select(id, date, annee = ANNEE, type, prix, surface, prixm2, codecommune, latitude, longitude)
+  DVFOK <- etape7 %>% select(id, 
+                             numero_disposition, adresse_numero, lot1_numero, 
+                             date, annee = ANNEE, type, prix, surface, prixm2, codecommune, latitude, longitude)
   
   # Écriture
-  fichier_out <- paste0("input/asf_0800/dvf_prep/dvf_", annee, ".csv")
+  fichier_out <- paste0("input/asf_0800/dvf_prep2/dvf_", annee, ".csv")
   write.csv(DVFOK, fichier_out, row.names = FALSE)
   
   message("Fichier exporté : ", fichier_out, "\n")
 }
-
