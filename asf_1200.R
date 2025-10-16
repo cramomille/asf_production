@@ -159,12 +159,12 @@ x <- fondata
 
 # Tableau ---------------------------------------------------------------------
 # Conservation des colonnes utiles
-vars <- x[, c(7:21)]
+vars <- x[, c(14:28)]
 vars$geometry <- NULL
 
 var_names <- names(vars)
 
-typologie <- x[[27]]
+typologie <- x[[34]]
 
 # Calcul des moyennes pour la France entiere
 moy_glob <- colMeans(vars, na.rm = TRUE)
@@ -224,3 +224,48 @@ for (i in 1:nrow(result)) {
 
 # Fermeture du fichier PDF
 dev.off()
+
+
+
+# GRAPHIQUES ------------------------------------------------------------------
+x <- fondata[, c(1, 2, 6, 7, 14:28)]
+x$geometry <- NULL
+
+# Recuperer les stocks
+# Identification des colonnes de pourcentages
+cols_pct <- grep("^p\\.", names(x), value = TRUE)
+
+# Creation de noms correspondants pour les colonnes de stock
+cols_stock <- sub("^p\\.", "s.", cols_pct)
+
+# Calcul des stocks
+x[cols_stock] <- round(x[cols_pct] / 100 * x$P21_POP, 0)
+
+x <- x[, !(names(x) %in% cols_pct)]
+
+
+
+
+
+# Recuperation des AAV pour les COMF_CODE
+tabl <- asf_mar(md = "com_xxxx", ma = "com_r2")
+tabl <- tabl[!duplicated(tabl$COMR2_CODE), c(4, 16:19)]
+
+y <- merge(x, tabl, by.x = "COMF_CO", by.y = "COMR2_CODE", all.x = TRUE)
+y <- y[, -1]
+
+asf_plot_vars(d = y,
+              vars = c(4:18),
+              typo = "CATEAAV2020")
+
+asf_plot_vars(d = y,
+              vars = c(4:18),
+              typo = "TAAV2017")
+
+asf_plot_typo(d = y,
+              vars = c(4:18),
+              typo = "CATEAAV2020")
+
+asf_plot_typo(d = y,
+              vars = c(4:18),
+              typo = "TAAV2017")
