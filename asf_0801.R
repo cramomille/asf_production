@@ -22,6 +22,8 @@ comr <- asf_fond(geom,
                  maille = "COMR2_CODE", 
                  keep = "DEP")
 
+comr <- asf_drom(comr, id = "COMR2_CODE")
+mf_map(comr)
 
 # IMPORT ET NETTOYAGE DES TABLEAUX DE DONNEES ---------------------------------
 dvf_dir <- list(dvf_2014 = "input/asf_0800/dvf_prep2/dvf_2014.csv",
@@ -121,6 +123,16 @@ data <- asf_data(result,
 
 fondata <- asf_fondata(f = comr, d = data, by = "COMR2_CODE")
 
+q6 <- quantile(fondata$TVAM, 
+               probs = c(0, 0.05, 0.25, 0.5, 0.75, 0.95, 1), 
+               na.rm = TRUE)
+
+mf_map(fondata,
+       var = "TVAM", 
+       type = "choro", 
+       breaks = q6,
+       border = NA)
+
 
 
 # PRIX DU M2 ------------------------------------------------------------------
@@ -135,8 +147,22 @@ dt_explo[, delta_prixm2 := prixm2 - shift(prixm2), by = id_xy]
 # Pour obtenir aussi le delta total en euros (pas par m²)
 dt_explo[, delta_prix := prix - shift(prix), by = id_xy]
 
-# On garde uniquement les lignes où une variation existe
+# On garde uniquement les lignes ou une variation existe
 result <- dt_explo[!is.na(delta_prixm2)]
+
+
+tmp <- merge(result, tabl, by = "COM_CODE", all.x = TRUE)
+
+nb_by_comr <- tapply(1:nrow(tmp), tmp$COMR2_CODE, length)
+
+nb_by_comr <- data.frame(
+  dep = names(nb_by_comr),
+  nb = as.vector(nb_by_comr)
+)
+
+
+
+
 
 
 data <- asf_data(result, 
@@ -149,78 +175,16 @@ data <- asf_data(result,
 fondata <- asf_fondata(f = comr, d = data, by = "COMR2_CODE")
 
 
+q6 <- quantile(fondata$delta_prixm2, 
+               probs = c(0, 0.05, 0.25, 0.5, 0.75, 0.95, 1), 
+               na.rm = TRUE)
 
+b_median <- c(-310.5, 0, 200, 300, 400, 800, 3750)
+b_mean <- c(-430, 0, 200, 300, 600, 800, 3700)
 
-
-# head(dt_multi)
-# 
-# d1 <- as.Date("2019-08-08")
-# d2 <- as.Date("2022-05-30")
-# 
-# prix1 <- 228572
-# prix2 <- 293580
-# 
-# 
-# year <- as.numeric(d2 - d1) / 365.25
-# tvam <- ((prix2 / prix1)^(1 / year) - 1)
-
-
-
-
-
-
-
-
-
-
-"
-J'ai un dataframe de 4 millions de lignes avec des ventes de biens immobiliers.
-
-Normlament il est déjà filtré pour ne garder que des biens qui apparaissent plusieurs fois (ce qui signifie qu'ils ont la même localisation xy et la même surface).
-
-Maintenant je veux calculer le TVAM des ventes de ces biens grâce au prix et à la date de la vente (donc bien1 vendu en 2014 et en 2016 (deux lignes) : je veux ajouter une colonne TVAM avec NA pour la ligne de la vente 2014 et la valeur du TVAM dans la ligne de 2016).
-
-Mais je me dis qu'il y a forcement des biens qui ne sont pas les même mais qui ont quand même la même localisation (différents appartements dans un même immeuble).
-
-Donc pour les cas où il y a beaucoup de ventes (donc beaucoup de lignes avec le même identifiant et que je pense correspondent à ces différents appartements dans un même immeuble), je veux que le tvam soit calculer entre la date la plus petite et toutes les autres et uniquement si la période entre deux vente est supérieure à 6 mois.
-
-exemple :
-
-  com        date    prix surface     id
-93064  2014-01-31  128000      46   4393
-93064  2014-02-26  138000      46   4393   
-93064  2014-09-05  110000      46   4393
-93064  2017-01-06  143000      46   4393
-93064  2017-12-20  150000      46   4393
-93064  2018-02-14  165000      46   4393
-
-
-  com       date1       date2    id  TVAM
-93064  2014-01-31  2014-02-26  4393   NA car moins de 6 mois
-93064  2014-01-31  2014-09-05  4393   tvam
-93064  2014-01-31  2017-01-06  4393   tvam
-93064  2014-01-31  2017-12-20  4393   tvam
-93064  2014-01-31  2018-02-14  4393   
-
-93064  2014-02-26  2014-09-05  4393 
-93064  2014-02-26  2017-01-06  4393 
-93064  2014-02-26  2017-12-20  4393 
-93064  2014-02-26  2018-02-14  4393 
-
-93064  2014-09-05  2017-01-06  4393
-93064  2014-09-05  2017-12-20  4393
-93064  2014-09-05  2018-02-14  4393
-
-93064  2017-01-06  2017-12-20  4393
-93064  2017-01-06  2018-02-14  4393
-
-93064  2017-12-20  2018-02-14  4393
-"
-
-
-
-
-
-
-
+mf_map(fondata,
+       var = "delta_prixm2", 
+       type = "choro", 
+       breaks = q6,
+       border = NA)
 
