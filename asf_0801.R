@@ -10,8 +10,20 @@ library(asf)
 library(mapsf)
 library(data.table)
 
+# ASF -------------------------------------------------------------------------
+mar <- asf_mar(md = "com_xxxx", ma = "com_r2", geom = TRUE)
+
+geom <- mar$geom
+tabl <- mar$tabl
+
+comr <- asf_fond(geom, 
+                 tabl, 
+                 by = "COMF_CODE", 
+                 maille = "COMR2_CODE", 
+                 keep = "DEP")
+
+
 # IMPORT ET NETTOYAGE DES TABLEAUX DE DONNEES ---------------------------------
-# Chargement des fichiers DVF
 dvf_dir <- list(dvf_2014 = "input/asf_0800/dvf_prep2/dvf_2014.csv",
                 dvf_2015 = "input/asf_0800/dvf_prep2/dvf_2015.csv",
                 dvf_2016 = "input/asf_0800/dvf_prep2/dvf_2016.csv",
@@ -46,6 +58,10 @@ colnames(dvf)[1] <- "COM_CODE"
 colnames(dvf)[2] <- "lon"
 colnames(dvf)[3] <- "lat"
 
+colnames(dvf)[4] <- "n_disposition"
+colnames(dvf)[5] <- "n_adresse"
+colnames(dvf)[6] <- "n_lot"
+
 head(dvf)
 
 
@@ -53,28 +69,31 @@ dt <- as.data.table(dvf)
 
 
 # NETTOYAGE -------------------------------------------------------------------
-# On arrondit la surface pour definir un "groupe de surface tolere"
+# Arrondi de la surface pour definir un "groupe de surface tolere"
 # Exemple : 80 et 81 seront dans le meme groupe si tol = 1
 tol <- 1
 
-# Creation d'un identifiant flou selon (lon, lat, surface ± tol)
-dt[, id_xy := .GRP, by = .(lon, lat, round(surface / (tol + 1)), numero_disposition, adresse_numero, lot1_numero)]
+# Creation d'un identifiant flou selon (lon, lat, surface, n_disposition, n_adresse, n_lot)
+dt[, id_xy := .GRP, by = .(lon, lat, round(surface / (tol + 1)), n_disposition, n_adresse, n_lot)]
 
 # Comptage du nombre d’occurrences uniques par date
 # => on compte uniquement si plusieurs dates differentes existent
 dt[, n_xy := uniqueN(date), by = id_xy]
 
-# Filtrer : meme bien (selon lon/lat/surface), vendu a plusieurs dates
+
+# Filtre "meme bien" vendu a plusieurs dates
 dt_multi <- dt[n_xy > 1]
 
 
 
 # TVAM ------------------------------------------------------------------------
+dt_explo <- dt_multi
+
 # Tri par bien et par date croissante
-setorder(dt_multi, id_xy, date)  
+setorder(dt_explo, id_xy, date)  
 
 # Calcul du TVAM pour chaque bien
-dt_multi[, TVAM := {
+dt_explo[, TVAM := {
   # Decalage des prix et dates dans chaque groupe
   prix_prev <- shift(prix)
   date_prev <- shift(date)
@@ -87,55 +106,49 @@ dt_multi[, TVAM := {
 }, by = id_xy]
 
 
-dt_net <- dt_multi[
-  !is.na(TVAM) & 
-    is.finite(TVAM) & 
-    TVAM > -1
+result <- dt_explo[
+  !is.na(TVAM) & is.finite(TVAM) & TVAM > -1
 ]
+
+result$TVAM <- round(result$TVAM *100, 1)
+
+data <- asf_data(result, 
+                 tabl, 
+                 by = "COM_CODE", 
+                 maille = "COMR2_CODE", 
+                 vars = "TVAM", 
+                 funs = "median")
+
+fondata <- asf_fondata(f = comr, d = data, by = "COMR2_CODE")
 
 
 
 # PRIX DU M2 ------------------------------------------------------------------
+dt_explo <- dt_multi
+
 # Tri par bien et par date croissante
-setorder(dt_multi, id_xy, date)
+setorder(dt_explo, id_xy, date)
 
 # Calcul de la variation absolue du prix/m²
-dt_net[, delta_prixm2 := prixm2 - shift(prixm2), by = id_xy]
+dt_explo[, delta_prixm2 := prixm2 - shift(prixm2), by = id_xy]
 
 # Pour obtenir aussi le delta total en euros (pas par m²)
-dt_net[, delta_prix := prix - shift(prix), by = id_xy]
+dt_explo[, delta_prix := prix - shift(prix), by = id_xy]
 
 # On garde uniquement les lignes où une variation existe
-dt_net <- dt_net[!is.na(delta_prixm2)]
+result <- dt_explo[!is.na(delta_prixm2)]
 
 
-
-# ASF -------------------------------------------------------------------------
-# Lecture des fichiers
-mar <- asf_mar(md = "com_xxxx", ma = "com_r2", geom = TRUE)
-
-geom <- mar$geom
-tabl <- mar$tabl
-
-# Creation du fond geographique des communes regroupees
-comr <- asf_fond(geom, 
-                 tabl, 
-                 by = "COMF_CODE", 
-                 maille = "COMR2_CODE", 
-                 keep = "DEP")
-
-
-data <- asf_data(dt_net, 
+data <- asf_data(result, 
                  tabl, 
                  by = "COM_CODE", 
                  maille = "COMR2_CODE", 
-                 # vars = "TVAM", 
                  vars = c("delta_prixm2", "delta_prix"),
                  funs = "median")
 
 fondata <- asf_fondata(f = comr, d = data, by = "COMR2_CODE")
 
-# fondata$TVAMM <- round(fondata$TVAM *100, 1)
+
 
 
 
