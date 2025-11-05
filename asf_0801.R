@@ -16,16 +16,16 @@ mar <- asf_mar(md = "com_xxxx", ma = "com_r2", geom = TRUE)
 geom <- mar$geom
 tabl <- mar$tabl
 
-comr <- asf_fond(geom, 
-                 tabl, 
-                 by = "COMF_CODE", 
-                 maille = "COMR2_CODE", 
-                 keep = "DEP")
+com_r2 <- asf_fond(geom, 
+                   tabl, 
+                   by = "COMF_CODE", 
+                   maille = "COMR2_CODE", 
+                   keep = "DEP")
 
-comr <- asf_drom(comr, id = "COMR2_CODE")
-mf_map(comr)
+com_r2 <- asf_drom(com_r2, id = "COMR2_CODE")
 
-# IMPORT ET NETTOYAGE DES TABLEAUX DE DONNEES ---------------------------------
+
+# NETTOYAGE DONNEES -----------------------------------------------------------
 dvf_dir <- list(dvf_2014 = "input/asf_0800/dvf_prep2/dvf_2014.csv",
                 dvf_2015 = "input/asf_0800/dvf_prep2/dvf_2015.csv",
                 dvf_2016 = "input/asf_0800/dvf_prep2/dvf_2016.csv",
@@ -66,11 +66,10 @@ colnames(dvf)[6] <- "n_lot"
 
 head(dvf)
 
-
 dt <- as.data.table(dvf)
 
 
-# NETTOYAGE -------------------------------------------------------------------
+# MULTI VENTES ----------------------------------------------------------------
 # Arrondi de la surface pour definir un "groupe de surface tolere"
 # Exemple : 80 et 81 seront dans le meme groupe si tol = 1
 tol <- 1
@@ -80,11 +79,97 @@ dt[, id_xy := .GRP, by = .(lon, lat, round(surface / (tol + 1)), n_disposition, 
 
 # Comptage du nombre d’occurrences uniques par date
 # => on compte uniquement si plusieurs dates differentes existent
-dt[, n_xy := uniqueN(date), by = id_xy]
+dt[, n_id := uniqueN(date), by = id_xy]
+
+# Filtrage des "memes biens" vendus a plusieurs dates
+dt_multi <- dt[n_id > 1]
 
 
-# Filtre "meme bien" vendu a plusieurs dates
-dt_multi <- dt[n_xy > 1]
+# AUGMENTATION PRIX M² --------------------------------------------------------
+
+data <- dt_multi
+
+# Tri par bien et par date croissante
+setorder(data, id_xy, date)
+
+# Calcul de la variation absolue du prix/m²
+data[, delta_prixm2 := prixm2 - shift(prixm2), by = id_xy]
+
+# # Pour obtenir aussi le delta total en euros (pas par m²)
+# data[, delta_prix := prix - shift(prix), by = id_xy]
+
+# On garde uniquement les lignes ou une variation existe
+data <- data[!is.na(delta_prixm2)]
+
+# Voir le nombre de multi ventes dans les com_r2
+tmp <- merge(data, tabl, by = "COM_CODE", all.x = TRUE)
+tmp <- tapply(1:nrow(data), data$COMR2_CODE, length)
+tmp <- data.frame(
+  dep = names(tmp),
+  nb = as.vector(tmp)
+)
+
+
+
+# Cartographie avec asf et mapsf
+z <- asf_zoom(com_r2, places = c("5", "4"))
+
+data_r2 <- asf_data(data, 
+                    tabl, 
+                    by = "COM_CODE", 
+                    maille = "COMR2_CODE", 
+                    vars = c("prix", "prixm2", "delta_prixm2"),
+                    funs = "median")
+
+fondata <- asf_fondata(f = com_r2, z = z[[1]], d = data_r2, by = "COMR2_CODE")
+
+palette <- rev(asf_palette(type = "div", nb = 6))
+
+q6 <- quantile(fondata$delta_prixm2, 
+               probs = c(0, 0.05, 0.25, 0.5, 0.75, 0.95, 1), 
+               na.rm = TRUE)
+
+mf_map(fondata,
+       var = "delta_prixm2", 
+       type = "choro", 
+       breaks = q6,
+       pal = palette,
+       border = NA)
+
+fondata$pct <- round(fondata$delta_prixm2 / fondata$prixm2 * 100, 0)
+
+q6 <- quantile(fondata$pct, 
+               probs = c(0, 0.05, 0.25, 0.5, 0.75, 0.95, 1), 
+               na.rm = TRUE)
+
+mf_map(fondata,
+       var = "pct", 
+       type = "choro", 
+       breaks = q6,
+       pal = palette,
+       border = NA)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -132,59 +217,3 @@ mf_map(fondata,
        type = "choro", 
        breaks = q6,
        border = NA)
-
-
-
-# PRIX DU M2 ------------------------------------------------------------------
-dt_explo <- dt_multi
-
-# Tri par bien et par date croissante
-setorder(dt_explo, id_xy, date)
-
-# Calcul de la variation absolue du prix/m²
-dt_explo[, delta_prixm2 := prixm2 - shift(prixm2), by = id_xy]
-
-# Pour obtenir aussi le delta total en euros (pas par m²)
-dt_explo[, delta_prix := prix - shift(prix), by = id_xy]
-
-# On garde uniquement les lignes ou une variation existe
-result <- dt_explo[!is.na(delta_prixm2)]
-
-
-tmp <- merge(result, tabl, by = "COM_CODE", all.x = TRUE)
-
-nb_by_comr <- tapply(1:nrow(tmp), tmp$COMR2_CODE, length)
-
-nb_by_comr <- data.frame(
-  dep = names(nb_by_comr),
-  nb = as.vector(nb_by_comr)
-)
-
-
-
-
-
-
-data <- asf_data(result, 
-                 tabl, 
-                 by = "COM_CODE", 
-                 maille = "COMR2_CODE", 
-                 vars = c("delta_prixm2", "delta_prix"),
-                 funs = "median")
-
-fondata <- asf_fondata(f = comr, d = data, by = "COMR2_CODE")
-
-
-q6 <- quantile(fondata$delta_prixm2, 
-               probs = c(0, 0.05, 0.25, 0.5, 0.75, 0.95, 1), 
-               na.rm = TRUE)
-
-b_median <- c(-310.5, 0, 200, 300, 400, 800, 3750)
-b_mean <- c(-430, 0, 200, 300, 600, 800, 3700)
-
-mf_map(fondata,
-       var = "delta_prixm2", 
-       type = "choro", 
-       breaks = q6,
-       border = NA)
-

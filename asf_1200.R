@@ -243,7 +243,7 @@ x[cols_stock] <- round(x[cols_pct] / 100 * x$P21_POP, 0)
 
 x <- x[, !(names(x) %in% cols_pct)]
 
-
+sum(x$s.MELENCHON)
 
 
 
@@ -269,3 +269,6 @@ asf_plot_typo(d = y,
 asf_plot_typo(d = y,
               vars = c(4:18),
               typo = "TAAV2017")
+
+
+
