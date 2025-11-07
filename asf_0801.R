@@ -97,9 +97,6 @@ setorder(data, id_xy, date)
 # Calcul de la variation absolue du prix/m²
 data[, delta_prixm2 := prixm2 - shift(prixm2), by = id_xy]
 
-# # Pour obtenir aussi le delta total en euros (pas par m²)
-# data[, delta_prix := prix - shift(prix), by = id_xy]
-
 # On garde uniquement les lignes ou une variation existe
 data <- data[!is.na(delta_prixm2)]
 
@@ -124,7 +121,7 @@ data_r2 <- asf_data(data,
 
 fondata <- asf_fondata(f = com_r2, z = z[[1]], d = data_r2, by = "COMR2_CODE")
 
-palette <- rev(asf_palette(type = "div", nb = 6))
+palette <- rev(asf_palette(pal = "rhubarbe", nb = 6))
 
 q6 <- quantile(fondata$delta_prixm2, 
                probs = c(0, 0.05, 0.25, 0.5, 0.75, 0.95, 1), 
@@ -136,3 +133,9 @@ mf_map(fondata,
        breaks = q6, 
        pal = palette, 
        border = NA)
+
+mf_label(z[[2]], 
+         var = "label")
+
+
+
