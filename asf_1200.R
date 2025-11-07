@@ -273,22 +273,14 @@ asf_plot_vars(d = y,
 
 asf_plot_vars(d = y,
               vars = c(5,7,8,10:21),
-              typo = c("TAAV2017", "CATEAAV2020"), pal = pal5, eff = TRUE)
+              typo = c("TAAV2017", "CATEAAV2020"), pal = pal5)
 
 asf_plot_vars(d = y,
               vars = c(5,7,8,10:21),
-              typo = c("CATEAAV2020", "TAAV2017"), pal = pal6, eff = TRUE)
+              typo = c("CATEAAV2020", "TAAV2017"), pal = pal6)
 
 
 # PLOT sur les typologies
-asf_plot_typo(d = y,
-              vars = c(5,7,8,10:21),
-              typo = "CATEAAV2020", pal = pal)
-
-asf_plot_typo(d = y,
-              vars = c(5,7,8,10:21),
-              typo = "CATEAAV2020", pal = pal, eff = TRUE)
-
 asf_plot_typo(d = y,
               vars = c(5,7,8,10:21),
               typo = "TAAV2017", pal = pal)
