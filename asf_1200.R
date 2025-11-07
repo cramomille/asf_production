@@ -10,10 +10,9 @@ library(asf)
 library(mapsf)
 library(readxl)
 
-
 # IMPORT DU FOND D'ALIETTE ROUX -----------------------------------------------
 # Lecture du fichier
-irisr_e <- st_read("input/asf_vote/IRISrE/AR04b_sf_IRISrE.shp")
+irisr_e <- st_read("input/asf_1200/IRISrE/AR04b_sf_IRISrE.shp")
 
 # Repositionnement des DROM
 irisr_e <- asf_drom(f = irisr_e, id = "IRISE_C")
@@ -30,8 +29,9 @@ point <- z$point
 # Simplification des geometries du fond principal
 irisr_e_simply <- asf_simplify(f = irisr_e, keep = 0.1)
 
+
 # Lecture des donnees
-data <- read_xlsx("input/asf_vote/data2022.xlsx")
+data <- read_xlsx("input/asf_1200/data2022.xlsx")
 
 # Ajout des zeros manquants dans les identifiants
 data$IRISrE_CODE <- ifelse(nchar(data$IRISrE_CODE) < 9,
@@ -54,9 +54,9 @@ dep <- asf_borders(f = dep, by = "DEP_CODE")
 
 # Boucle pour realiser toutes les cartes et les exporter en PDF
 # Ouverture d'un fichier PDF
-pdf(file = paste0("output/asf_vote/explo_decile.pdf"), width = 8, height = 8)
+pdf(file = paste0("output/asf_1200/explo_decile.pdf"), width = 8, height = 8)
 
-for (i in 7:21) {
+for (i in 14:28) {
   
   # Nom de la variable
   varname <- names(fondata)[i]
@@ -188,7 +188,7 @@ result <- cbind(moy_typo, ecart_moy, z_score)
 
 # Graphiques ------------------------------------------------------------------
 # Ouverture d'un fichier PDF
-pdf("output/graph_clust17.pdf", width = 12, height = 7)
+pdf("output/asf_1200/graph_clust17.pdf", width = 12, height = 7)
 
 # Boucle sur chaque classe
 for (i in 1:nrow(result)) {
@@ -228,47 +228,79 @@ dev.off()
 
 
 # GRAPHIQUES ------------------------------------------------------------------
-x <- fondata[, c(1, 2, 6, 7, 14:28)]
-x$geometry <- NULL
 
-# Recuperer les stocks
-# Identification des colonnes de pourcentages
-cols_pct <- grep("^p\\.", names(x), value = TRUE)
+# Premiere installation ou mise a jour d'asf
+install_gitlab(repo = "atlas-social-de-la-france/asf",
+               host = "gitlab.huma-num.fr",
+               build_vignettes = TRUE,
+               force = TRUE,
+               upgrade = "never")
 
-# Creation de noms correspondants pour les colonnes de stock
-cols_stock <- sub("^p\\.", "s.", cols_pct)
+# Chargement du package
+library(asf)
 
-# Calcul des stocks
-x[cols_stock] <- round(x[cols_pct] / 100 * x$P21_POP, 0)
-
-x <- x[, !(names(x) %in% cols_pct)]
-
-sum(x$s.MELENCHON)
-
-
+# Recuperation des donnees
+x <- read.csv2("input/asf_1200/data2022_valeursAbs.csv") # ici mettre le chemin des donnees sur ta machine
 
 # Recuperation des AAV pour les COMF_CODE
-tabl <- asf_mar(md = "com_xxxx", ma = "com_r2")
+tabl <- asf_mar(md = "com_xxxx", ma = "com_r2") # fonctionne avec internet
 tabl <- tabl[!duplicated(tabl$COMR2_CODE), c(4, 16:19)]
 
-y <- merge(x, tabl, by.x = "COMF_CO", by.y = "COMR2_CODE", all.x = TRUE)
+y <- merge(x, tabl, by.x = "COMF_CODE_MULTI", by.y = "COMR2_CODE", all.x = TRUE)
 y <- y[, -1]
 
+pal5 <- asf_palette(type = "qua", nb = 5)
+pal6 <- asf_palette(type = "qua", nb = 6)
+pal <- asf_palette(type = "qua")
+
+
+# PLOT sur les variables
 asf_plot_vars(d = y,
-              vars = c(4:18),
-              typo = "CATEAAV2020")
+              vars = c(5,7,8,10:21),
+              typo = "CATEAAV2020", pal = pal5)
 
 asf_plot_vars(d = y,
-              vars = c(4:18),
-              typo = "TAAV2017")
+              vars = c(5,7,8,10:21),
+              typo = "CATEAAV2020", pal = pal5, eff = TRUE)
+
+asf_plot_vars(d = y,
+              vars = c(5,7,8,10:21),
+              typo = "TAAV2017", pal = pal6)
+
+asf_plot_vars(d = y,
+              vars = c(5,7,8,10:21),
+              typo = "TAAV2017", pal = pal6, eff = TRUE)
+
+asf_plot_vars(d = y,
+              vars = c(5,7,8,10:21),
+              typo = c("TAAV2017", "CATEAAV2020"), pal = pal5, eff = TRUE)
+
+asf_plot_vars(d = y,
+              vars = c(5,7,8,10:21),
+              typo = c("CATEAAV2020", "TAAV2017"), pal = pal6, eff = TRUE)
+
+
+# PLOT sur les typologies
+asf_plot_typo(d = y,
+              vars = c(5,7,8,10:21),
+              typo = "CATEAAV2020", pal = pal)
 
 asf_plot_typo(d = y,
-              vars = c(4:18),
-              typo = "CATEAAV2020")
+              vars = c(5,7,8,10:21),
+              typo = "CATEAAV2020", pal = pal, eff = TRUE)
 
 asf_plot_typo(d = y,
-              vars = c(4:18),
-              typo = "TAAV2017")
+              vars = c(5,7,8,10:21),
+              typo = "TAAV2017", pal = pal)
 
+asf_plot_typo(d = y,
+              vars = c(5,7,8,10:21),
+              typo = "TAAV2017", pal = pal, eff = TRUE)
 
+asf_plot_typo(d = y,
+              vars = c(5,7,8,10:21),
+              typo = c("TAAV2017", "CATEAAV2020"), pal = pal, eff = TRUE)
 
+asf_plot_typo(d = y,
+              vars = c(5,7,8,10:21),
+              typo = c("CATEAAV2020", "TAAV2017"), pal = pal, eff = TRUE)

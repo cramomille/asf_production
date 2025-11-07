@@ -84,10 +84,12 @@ dt[, n_id := uniqueN(date), by = id_xy]
 # Filtrage des "memes biens" vendus a plusieurs dates
 dt_multi <- dt[n_id > 1]
 
+write.csv(dt_multi, "output/asf_0801/dt_multi.csv")
+
 
 # AUGMENTATION PRIX M² --------------------------------------------------------
-
-data <- dt_multi
+data <- read.csv("output/asf_0801/dt_multi.csv")[, -1]
+data <- as.data.table(data)
 
 # Tri par bien et par date croissante
 setorder(data, id_xy, date)
@@ -103,23 +105,22 @@ data <- data[!is.na(delta_prixm2)]
 
 # Voir le nombre de multi ventes dans les com_r2
 tmp <- merge(data, tabl, by = "COM_CODE", all.x = TRUE)
-tmp <- tapply(1:nrow(data), data$COMR2_CODE, length)
+tmp <- tapply(1:nrow(tmp), tmp$COMR2_CODE, length)
 tmp <- data.frame(
   dep = names(tmp),
   nb = as.vector(tmp)
 )
 
 
-
 # Cartographie avec asf et mapsf
-z <- asf_zoom(com_r2, places = c("5", "4"))
+z <- asf_zoom(com_r2, places = c("Paris", "Lyon", "Marseille", "Avignon"))
 
 data_r2 <- asf_data(data, 
                     tabl, 
                     by = "COM_CODE", 
                     maille = "COMR2_CODE", 
                     vars = c("prix", "prixm2", "delta_prixm2"),
-                    funs = "median")
+                    funs = "mean")
 
 fondata <- asf_fondata(f = com_r2, z = z[[1]], d = data_r2, by = "COMR2_CODE")
 
@@ -134,86 +135,4 @@ mf_map(fondata,
        type = "choro", 
        breaks = q6, 
        pal = palette, 
-       border = NA)
-
-fondata$pct <- round(fondata$delta_prixm2 / fondata$prixm2 * 100, 0)
-
-q6 <- quantile(fondata$pct, 
-               probs = c(0, 0.05, 0.25, 0.5, 0.75, 0.95, 1), 
-               na.rm = TRUE)
-
-mf_map(fondata, 
-       var = "pct", 
-       type = "choro", 
-       breaks = q6, 
-       pal = palette, 
-       border = NA)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# TVAM ------------------------------------------------------------------------
-dt_explo <- dt_multi
-
-# Tri par bien et par date croissante
-setorder(dt_explo, id_xy, date)  
-
-# Calcul du TVAM pour chaque bien
-dt_explo[, TVAM := {
-  # Decalage des prix et dates dans chaque groupe
-  prix_prev <- shift(prix)
-  date_prev <- shift(date)
-  
-  # Calcul du nombre d'annees entre deux ventes
-  years <- as.numeric(as.Date(date) - as.Date(date_prev)) / 365.25
-  
-  # Calcul du TVAM (NA pour la premiere vente)
-  ((prix / prix_prev)^(1 / years) - 1)
-}, by = id_xy]
-
-
-result <- dt_explo[
-  !is.na(TVAM) & is.finite(TVAM) & TVAM > -1
-]
-
-result$TVAM <- round(result$TVAM *100, 1)
-
-data <- asf_data(result, 
-                 tabl, 
-                 by = "COM_CODE", 
-                 maille = "COMR2_CODE", 
-                 vars = "TVAM", 
-                 funs = "median")
-
-fondata <- asf_fondata(f = comr, d = data, by = "COMR2_CODE")
-
-q6 <- quantile(fondata$TVAM, 
-               probs = c(0, 0.05, 0.25, 0.5, 0.75, 0.95, 1), 
-               na.rm = TRUE)
-
-mf_map(fondata,
-       var = "TVAM", 
-       type = "choro", 
-       breaks = q6,
        border = NA)
