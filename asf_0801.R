@@ -129,11 +129,11 @@ q6 <- quantile(fondata$delta_prixm2,
                probs = c(0, 0.05, 0.25, 0.5, 0.75, 0.95, 1), 
                na.rm = TRUE)
 
-mf_map(fondata,
+mf_map(fondata, 
        var = "delta_prixm2", 
        type = "choro", 
-       breaks = q6,
-       pal = palette,
+       breaks = q6, 
+       pal = palette, 
        border = NA)
 
 fondata$pct <- round(fondata$delta_prixm2 / fondata$prixm2 * 100, 0)
@@ -142,11 +142,11 @@ q6 <- quantile(fondata$pct,
                probs = c(0, 0.05, 0.25, 0.5, 0.75, 0.95, 1), 
                na.rm = TRUE)
 
-mf_map(fondata,
+mf_map(fondata, 
        var = "pct", 
        type = "choro", 
-       breaks = q6,
-       pal = palette,
+       breaks = q6, 
+       pal = palette, 
        border = NA)
 
 
