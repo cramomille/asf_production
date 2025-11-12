@@ -9,6 +9,7 @@ library(sf)
 library(asf)
 library(mapsf)
 library(data.table)
+library(gridExtra)
 
 # ASF -------------------------------------------------------------------------
 mar <- asf_mar(md = "com_xxxx", ma = "com_r2", geom = TRUE)
@@ -100,17 +101,15 @@ data[, delta_prixm2 := prixm2 - shift(prixm2), by = id_xy]
 # On garde uniquement les lignes ou une variation existe
 data <- data[!is.na(delta_prixm2)]
 
-# Voir le nombre de multi ventes dans les com_r2
-tmp <- merge(data, tabl, by = "COM_CODE", all.x = TRUE)
-tmp <- tapply(1:nrow(tmp), tmp$COMR2_CODE, length)
-tmp <- data.frame(
-  dep = names(tmp),
-  nb = as.vector(tmp)
-)
+# CARTOGRAPHIE ----------------------------------------------------------------
+v <- c("Marseille", "Lyon", "Toulouse", "Nantes", "Montpellier",
+       "Bordeaux", "Lille", "Rennes", "Reims", "Dijon",
+       "Angers", "Grenoble", "Clermont-Ferrand", "Tours", "Perpignan",
+       "Besancon", "Rouen", "La Rochelle", "Le Havre", "Nice")
 
-
-# Cartographie avec asf et mapsf
-z <- asf_zoom(com_r2, places = c("Paris", "Lyon", "Marseille", "Avignon"))
+z <- asf_zoom(com_r2, 
+              places = v, 
+              r = 15000)
 
 data_r2 <- asf_data(data, 
                     tabl, 
@@ -119,7 +118,18 @@ data_r2 <- asf_data(data,
                     vars = c("prix", "prixm2", "delta_prixm2"),
                     funs = "mean")
 
-fondata <- asf_fondata(f = com_r2, z = z[[1]], d = data_r2, by = "COMR2_CODE")
+com_r2_simply <- asf_simplify(com_r2)
+
+fondata <- asf_fondata(f = com_r2_simply, z = z[[1]], d = data_r2, by = "COMR2_CODE")
+
+# Limites des com dans les zooms
+com_r2_line <- asf_borders(com_r2, by = "COMR2_CODE")
+
+z <- asf_zoom(com_r2_line, 
+              places = v, 
+              r = 15000, 
+              f_ref = com_r2)
+
 
 palette <- rev(asf_palette(pal = "rhubarbe", nb = 6))
 
@@ -134,8 +144,85 @@ mf_map(fondata,
        pal = palette, 
        border = NA)
 
+mf_map(z[[1]],
+       col = "#fff",
+       add = TRUE)
+
 mf_label(z[[2]], 
          var = "label")
 
 
+# GRAPHIQUES ------------------------------------------------------------------
+# Clarification des noms
+cateaav_labels <- c(
+  "11" = "Commune-Centre",
+  "12" = "Autre commune du pôle principal",
+  "13" = "Commune d'un pôle secondaire",
+  "20" = "Commune de la couronne",
+  "30" = "Commune hors attraction des villes"
+)
 
+taav_labels <- c(
+  "0" = "Hors attraction des villes",
+  "1" = "Aire < 50 000 hab.",
+  "2" = "Aire 50 000–200 000 hab.",
+  "3" = "Aire 200 000–700 000 hab.",
+  "4" = "Aire ≥ 700 000 hab. (hors Paris)",
+  "5" = "Aire de Paris"
+)
+
+# Nombre de multiventes par type d'AAV
+x <- merge(data, tabl, by = "COM_CODE", all.x = TRUE)
+x <- aggregate(
+  list(nb_multivente = x$COM_CODE),
+  by = list(COMR2_CODE = x$COMR2_CODE),
+  FUN = length
+)
+
+x <- merge(x, tabl, by = "COMR2_CODE", all.x = TRUE)
+
+x$TAAV2017 <- taav_labels[as.character(x$TAAV2017)]
+x$CATEAAV2020 <- cateaav_labels[as.character(x$CATEAAV2020)]
+
+palette <- asf_palette(type = "qua", nb = 6)
+
+asf_plot_vars(x, vars = "nb_multivente", typo = "TAAV2017", eff = TRUE, pal = palette,
+              order.t = c("Hors attraction des villes",
+                          "Aire < 50 000 hab.",
+                          "Aire 50 000–200 000 hab.",
+                          "Aire 200 000–700 000 hab.",
+                          "Aire ≥ 700 000 hab. (hors Paris)",
+                          "Aire de Paris"))
+
+
+asf_plot_vars(x, vars = "nb_multivente", typo = "CATEAAV2020", eff = TRUE, pal = palette,
+              order.t = c("Commune hors attraction des villes",
+                          "Commune de la couronne",
+                          "Commune d'un pôle secondaire",
+                          "Autre commune du pôle principal",
+                          "Commune-Centre"))
+
+asf_plot_vars(x, vars = "nb_multivente", typo = c("TAAV2017", "CATEAAV2020"), eff = TRUE, pal = palette,
+              order.t = c("Commune hors attraction des villes",
+                          "Commune de la couronne",
+                          "Commune d'un pôle secondaire",
+                          "Autre commune du pôle principal",
+                          "Commune-Centre"))
+
+# Delta_prixm² par type d'AAV
+x <- merge(data, tabl, by = "COM_CODE", all.x = TRUE)
+x <- aggregate(
+  x = list(delta_prixm2 = x$delta_prixm2),
+  by = list(
+    TAAV2017 = x$TAAV2017,
+    CATEAAV2020 = x$CATEAAV2020),
+  FUN = mean,
+  na.rm = TRUE
+)
+
+x <- x[order(x$TAAV2017, x$CATEAAV2020), ]
+
+x$TAAV2017 <- taav_labels[as.character(x$TAAV2017)]
+x$CATEAAV2020 <- cateaav_labels[as.character(x$CATEAAV2020)]
+
+grid.table(x)
