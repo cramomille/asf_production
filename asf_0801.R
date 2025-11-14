@@ -25,6 +25,8 @@ com_r2 <- asf_fond(geom,
 
 com_r2 <- asf_drom(com_r2, id = "COMR2_CODE")
 
+com_r2_simply <- asf_simplify(com_r2)
+
 
 # NETTOYAGE DONNEES -----------------------------------------------------------
 dvf_dir <- list(dvf_2014 = "input/asf_0800/dvf_prep2/dvf_2014.csv",
@@ -88,6 +90,134 @@ dt_multi <- dt[n_id > 1]
 write.csv(dt_multi, "output/asf_0801/dt_multi.csv")
 
 
+# AUGMENTATION PRIX M² (TVAM et INFLATION) ------------------------------------
+data <- read.csv("output/asf_0801/dt_multi.csv")[, -1]
+data$annee <- as.numeric(substr(data$date, 1, 4))
+data <- data[, c(12, 1, 7, 14, 9, 11)]
+
+# https://www.insee.fr/fr/statistiques/4268033#tableau-figure1
+infl <- data.frame(
+  annee = 2000:2024,
+  inflation = c(1.7, 1.6, 1.9, 2.1, 2.1, 
+                1.7, 1.7, 1.5, 2.8, 0.1,
+                1.5, 2.1, 2.0, 0.9, 0.5,
+                0.0, 0.2, 1.0, 1.9, 1.1, 
+                0.5, 1.6, 5.2, 4.9, 2.0)
+)
+
+# Inflation cumulee depuis 2000
+infl$indice <- cumprod(1 + infl$inflation/100)
+
+# Indice normalise base 2024 = 1
+infl$facteur_2024 <- infl$indice[length(infl$indice)] / infl$indice
+
+# Correction des prix en fonction de l'inflation
+data <- merge(data, infl[, c("annee","facteur_2024")], by = "annee", all.x = TRUE)
+data$prixm2_2024 <- round(data$prixm2 * data$facteur_2024, 0)
+
+head(data)
+
+
+
+dt <- as.data.table(data)
+setorder(dt, id_xy, date)
+
+# calcul de la duree en annees entre ventes consecutives
+dt[, delta_annees := c(NA, as.numeric(difftime(date[-1], date[-.N], units = "days"))/365.25), by = id_xy]
+
+# Calcul du TVAM
+dt[, tvam := c(NA, (prixm2_2024[-1]/prixm2_2024[-.N])^(1/delta_annees[-1]) - 1), by = id_xy]
+
+# Delta prix annualise en €/m²/an
+dt[, delta_1an := tvam * shift(prixm2_2024), by = id_xy]
+
+# Taux de variation annuel en %
+dt[, taux_var := tvam * 100]
+
+dt_clean <- dt[!(is.na(tvam) | !is.finite(tvam) | tvam < -0.9 | tvam > 10 ) ]
+
+data <- as.data.frame(dt_clean)
+
+
+
+
+# CARTOGRAPHIE ----------------------------------------------------------------
+v <- c("Marseille", "Lyon", "Toulouse", "Nantes", "Montpellier",
+       "Bordeaux", "Lille", "Rennes", "Reims", "Dijon",
+       "Angers", "Grenoble", "Clermont-Ferrand", "Tours", "Perpignan",
+       "Besancon", "Rouen", "La Rochelle", "Le Havre", "Nice")
+
+z <- asf_zoom(com_r2, 
+              places = v, 
+              r = 15000)
+
+data_r2 <- asf_data(data, 
+                    tabl, 
+                    by = "COM_CODE", 
+                    maille = "COMR2_CODE", 
+                    vars = c(10:12),
+                    funs = "median")
+
+fondata <- asf_fondata(f = com_r2_simply, z = z[[1]], d = data_r2, by = "COMR2_CODE")
+
+# Limites des com dans les zooms
+com_r2_line <- asf_borders(com_r2, by = "COMR2_CODE")
+
+z <- asf_zoom(com_r2_line, 
+              places = v, 
+              r = 15000, 
+              f_ref = com_r2)
+
+
+palette <- rev(asf_palette(pal = "rhubarbe", nb = 6))
+
+q6 <- quantile(fondata$delta_1an, 
+               probs = c(0, 0.05, 0.25, 0.5, 0.75, 0.95, 1), 
+               na.rm = TRUE)
+
+mf_map(fondata, 
+       var = "delta_1an", 
+       type = "choro", 
+       breaks = q6, 
+       pal = palette, 
+       border = NA)
+
+mf_map(z[[1]],
+       col = "#fff",
+       add = TRUE)
+
+mf_label(z[[2]], 
+         var = "label")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # AUGMENTATION PRIX M² --------------------------------------------------------
 data <- read.csv("output/asf_0801/dt_multi.csv")[, -1]
 data <- as.data.table(data)
@@ -117,8 +247,6 @@ data_r2 <- asf_data(data,
                     maille = "COMR2_CODE", 
                     vars = c("prix", "prixm2", "delta_prixm2"),
                     funs = "mean")
-
-com_r2_simply <- asf_simplify(com_r2)
 
 fondata <- asf_fondata(f = com_r2_simply, z = z[[1]], d = data_r2, by = "COMR2_CODE")
 
@@ -194,7 +322,6 @@ asf_plot_vars(x, vars = "nb_multivente", typo = "TAAV2017", eff = TRUE, pal = pa
                           "Aire ≥ 700 000 hab. (hors Paris)",
                           "Aire de Paris"))
 
-
 asf_plot_vars(x, vars = "nb_multivente", typo = "CATEAAV2020", eff = TRUE, pal = palette,
               order.t = c("Commune hors attraction des villes",
                           "Commune de la couronne",
@@ -226,3 +353,15 @@ x$TAAV2017 <- taav_labels[as.character(x$TAAV2017)]
 x$CATEAAV2020 <- cateaav_labels[as.character(x$CATEAAV2020)]
 
 grid.table(x)
+
+
+
+
+
+head(data)
+
+
+
+
+
+
