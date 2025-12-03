@@ -90,10 +90,10 @@ dt_multi <- dt[n_id > 1]
 write.csv(dt_multi, "output/asf_0801/dt_multi.csv")
 
 
-# AUGMENTATION PRIX M² (TVAM et INFLATION) ------------------------------------
+# AUGMENTATION MEDIANE DU PRIX DU M² SUR UN AN --------------------------------
 data <- read.csv("output/asf_0801/dt_multi.csv")[, -1]
 data$annee <- as.numeric(substr(data$date, 1, 4))
-data <- data[, c(12, 1, 7, 14, 9, 11)]
+data <- data[, c(12, 1, 7, 14, 9, 10, 11)]
 
 # https://www.insee.fr/fr/statistiques/4268033#tableau-figure1
 infl <- data.frame(
@@ -126,15 +126,21 @@ setorder(dt, id_xy, date)
 dt[, delta_annees := c(NA, as.numeric(difftime(date[-1], date[-.N], units = "days"))/365.25), by = id_xy]
 
 # Calcul du TVAM
-dt[, tvam := c(NA, (prixm2_2024[-1]/prixm2_2024[-.N])^(1/delta_annees[-1]) - 1), by = id_xy]
+dt[, tvam := round(100 * ((prixm2_2024 / shift(prixm2_2024))^(1 / delta_annees) - 1), 2), by = id_xy]
 
 # Delta prix annualise en €/m²/an
-dt[, delta_1an := tvam * shift(prixm2_2024), by = id_xy]
+# dt[, delta_1an := tvam * shift(prixm2_2024), by = id_xy]
 
-# Taux de variation annuel en %
-dt[, taux_var := tvam * 100]
 
-dt_clean <- dt[!(is.na(tvam) | !is.finite(tvam) | tvam < -0.9 | tvam > 10 ) ]
+# Augmentation en euros par m² par an
+dt[, delta_eur_m2 := round((prixm2_2024 - shift(prixm2_2024)) / delta_annees, 2), by = id_xy]
+
+# Augmentation totale pour le bien par an
+dt[, delta_eur_tot := round(delta_eur_m2 * surface, 2), by = id_xy]
+
+
+
+dt_clean <- dt[!(is.na(tvam) | !is.finite(tvam) | tvam < -99 | tvam > 100 ) ]
 
 data <- as.data.frame(dt_clean)
 
@@ -155,7 +161,7 @@ data_r2 <- asf_data(data,
                     tabl, 
                     by = "COM_CODE", 
                     maille = "COMR2_CODE", 
-                    vars = c(10:12),
+                    vars = c(11:13),
                     funs = "median")
 
 fondata <- asf_fondata(f = com_r2_simply, z = z[[1]], d = data_r2, by = "COMR2_CODE")
@@ -168,15 +174,14 @@ z <- asf_zoom(com_r2_line,
               r = 15000, 
               f_ref = com_r2)
 
-
 palette <- rev(asf_palette(pal = "rhubarbe", nb = 6))
 
-q6 <- quantile(fondata$delta_1an, 
+q6 <- quantile(fondata$delta_eur_m2, 
                probs = c(0, 0.05, 0.25, 0.5, 0.75, 0.95, 1), 
                na.rm = TRUE)
 
 mf_map(fondata, 
-       var = "delta_1an", 
+       var = "delta_eur_m2", 
        type = "choro", 
        breaks = q6, 
        pal = palette, 
@@ -190,85 +195,12 @@ mf_label(z[[2]],
          var = "label")
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# AUGMENTATION PRIX M² --------------------------------------------------------
-data <- read.csv("output/asf_0801/dt_multi.csv")[, -1]
-data <- as.data.table(data)
-
-# Tri par bien et par date croissante
-setorder(data, id_xy, date)
-
-# Calcul de la variation absolue du prix/m²
-data[, delta_prixm2 := prixm2 - shift(prixm2), by = id_xy]
-
-# On garde uniquement les lignes ou une variation existe
-data <- data[!is.na(delta_prixm2)]
-
-# CARTOGRAPHIE ----------------------------------------------------------------
-v <- c("Marseille", "Lyon", "Toulouse", "Nantes", "Montpellier",
-       "Bordeaux", "Lille", "Rennes", "Reims", "Dijon",
-       "Angers", "Grenoble", "Clermont-Ferrand", "Tours", "Perpignan",
-       "Besancon", "Rouen", "La Rochelle", "Le Havre", "Nice")
-
-z <- asf_zoom(com_r2, 
-              places = v, 
-              r = 15000)
-
-data_r2 <- asf_data(data, 
-                    tabl, 
-                    by = "COM_CODE", 
-                    maille = "COMR2_CODE", 
-                    vars = c("prix", "prixm2", "delta_prixm2"),
-                    funs = "mean")
-
-fondata <- asf_fondata(f = com_r2_simply, z = z[[1]], d = data_r2, by = "COMR2_CODE")
-
-# Limites des com dans les zooms
-com_r2_line <- asf_borders(com_r2, by = "COMR2_CODE")
-
-z <- asf_zoom(com_r2_line, 
-              places = v, 
-              r = 15000, 
-              f_ref = com_r2)
-
-
-palette <- rev(asf_palette(pal = "rhubarbe", nb = 6))
-
-q6 <- quantile(fondata$delta_prixm2, 
-               probs = c(0, 0.05, 0.25, 0.5, 0.75, 0.95, 1), 
-               na.rm = TRUE)
+breaks <- c(-350, 0, 40, 65, 100, 200, 900)
 
 mf_map(fondata, 
-       var = "delta_prixm2", 
+       var = "delta_eur_m2", 
        type = "choro", 
-       breaks = q6, 
+       breaks = breaks, 
        pal = palette, 
        border = NA)
 
@@ -278,6 +210,7 @@ mf_map(z[[1]],
 
 mf_label(z[[2]], 
          var = "label")
+
 
 
 # GRAPHIQUES ------------------------------------------------------------------
@@ -339,7 +272,7 @@ asf_plot_vars(x, vars = "nb_multivente", typo = c("TAAV2017", "CATEAAV2020"), ef
 # Delta_prixm² par type d'AAV
 x <- merge(data, tabl, by = "COM_CODE", all.x = TRUE)
 x <- aggregate(
-  x = list(delta_prixm2 = x$delta_prixm2),
+  x = list(delta_eur_m2 = x$delta_eur_m2),
   by = list(
     TAAV2017 = x$TAAV2017,
     CATEAAV2020 = x$CATEAAV2020),
@@ -349,19 +282,11 @@ x <- aggregate(
 
 x <- x[order(x$TAAV2017, x$CATEAAV2020), ]
 
+x$delta_eur_m2 <- round(x$delta_eur_m2, 0)
+
 x$TAAV2017 <- taav_labels[as.character(x$TAAV2017)]
 x$CATEAAV2020 <- cateaav_labels[as.character(x$CATEAAV2020)]
 
 grid.table(x)
-
-
-
-
-
-head(data)
-
-
-
-
 
 

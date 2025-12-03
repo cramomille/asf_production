@@ -197,3 +197,46 @@ mf_map(type = "typo", x = Moran, var = "q", val_order = levels(Moran$q),
 mf_map(dep,
        col = "#000",
        add = TRUE)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# CASD
+# FIDELI 2022
+
+decile <- paste0("d", 1:9)
+revenus <- c(11839, 15204, 18023, 20404, 22713, 25305, 28384, 32591, 40498)
+
+f <- data.frame(
+  decile = decile, 
+  rev_ann = revenus
+)
+
+f$rev_moi <- round(f$rev_ann / 12, 0)
+
+
+
+# FILOCOM 2022
+
+decile <- paste0("d", 1:9)
+revenus <- c(7285, 11331, 14519, 17323, 19893, 22778, 26518, 31769, 42029)
+
+g <- data.frame(
+  decile = decile, 
+  rev_ann = revenus
+)
+
+g$rev_moi <- round(g$rev_ann / 12, 0)
