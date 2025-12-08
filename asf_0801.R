@@ -11,22 +11,6 @@ library(mapsf)
 library(data.table)
 library(gridExtra)
 
-# ASF -------------------------------------------------------------------------
-mar <- asf_mar(md = "com_xxxx", ma = "com_r2", geom = TRUE)
-
-geom <- mar$geom
-tabl <- mar$tabl
-
-com_r2 <- asf_fond(geom, 
-                   tabl, 
-                   by = "COMF_CODE", 
-                   maille = "COMR2_CODE", 
-                   keep = "DEP")
-
-com_r2 <- asf_drom(com_r2, id = "COMR2_CODE")
-
-com_r2_simply <- asf_simplify(com_r2)
-
 
 # NETTOYAGE DONNEES -----------------------------------------------------------
 dvf_dir <- list(dvf_2014 = "input/asf_0800/dvf_prep2/dvf_2014.csv",
@@ -69,32 +53,84 @@ colnames(dvf)[6] <- "n_lot"
 
 head(dvf)
 
-dt <- as.data.table(dvf)
-
 
 # MULTI VENTES ----------------------------------------------------------------
+dt <- as.data.table(dvf)
+
 # Arrondi de la surface pour definir un "groupe de surface tolere"
 # Exemple : 80 et 81 seront dans le meme groupe si tol = 1
 tol <- 1
 
 # Creation d'un identifiant flou selon (lon, lat, surface, n_disposition, n_adresse, n_lot)
-dt[, id_xy := .GRP, by = .(lon, lat, round(surface / (tol + 1)), n_disposition, n_adresse, n_lot)]
+dt[, id := .GRP, by = .(lon, lat, round(surface / (tol + 1)), n_disposition, n_adresse, n_lot)]
+
+# Triage par id et date
+dt[, date := as.Date(date)]
+setorder(dt, id, date)
+
+# Decoupage d'un id en plusieurs si l'ecart entre deux vente est < 6 mois
+dt[, id_split := cumsum(c(0, diff(date) < 180)), by = id]
+
+# Creation d'un id final
+dt[, id_final_raw := paste(id, id_split, sep = "_")]
+
+# Uniformisation du nombre de caracteres des identifiants
+max_len <- max(nchar(dt$id_final_raw))
+
+# Creation de l’id final avec padding de 0 a gauche
+dt[, id := sprintf(paste0("%0", max_len, "d"),
+                   as.integer(factor(id_final_raw)))]
+
+# Suppression des colonnes intermediaires
+dt[, c("id_split", "id_final_raw") := NULL]
 
 # Comptage du nombre d’occurrences uniques par date
 # => on compte uniquement si plusieurs dates differentes existent
-dt[, n_id := uniqueN(date), by = id_xy]
+dt[, n_id := uniqueN(date), by = id]
 
 # Filtrage des "memes biens" vendus a plusieurs dates
 dt_multi <- dt[n_id > 1]
 
-write.csv(dt_multi, "output/asf_0801/dt_multi.csv")
+saveRDS(dt_multi, "output/asf_0801/dt_multi.rds")
 
 
 # AUGMENTATION MEDIANE DU PRIX DU M² SUR UN AN --------------------------------
-data <- read.csv("output/asf_0801/dt_multi.csv")[, -1]
+data <- readRDS("output/asf_0801/dt_multi.rds")
 data$annee <- as.numeric(substr(data$date, 1, 4))
-data <- data[, c(12, 1, 7, 14, 9, 10, 11)]
 
+# Ajout des CODE_IRIS
+data <- st_as_sf(
+  data,
+  coords = c("lon", "lat"),
+  crs = 4326,
+  remove = FALSE
+)
+
+data <- st_transform(data, 2154)
+
+geom <- asf_mar(geom = TRUE)
+
+# Jointure spatiale
+data <- st_join(data, geom[, c("IRISF_CODE", "COMF_CODE")])
+
+# Points en dehors du fond a cause de sa generalisation
+missing_idx <- which(is.na(data$IRISF_CODE) & is.na(data$COMF_CODE))
+missing_points <- data[missing_idx, ]
+
+# Attribution des codes de l'IRIS le plus proche
+if (nrow(missing_points) > 0) {
+  nearest_idx <- st_nearest_feature(missing_points, geom)
+  
+  # On remplit les colonnes manquantes avec l'IRIS le plus proche
+  data$IRISF_CODE[missing_idx] <- geom$IRISF_CODE[nearest_idx]
+  data$COMF_CODE[missing_idx]  <- geom$COMF_CODE[nearest_idx]
+}
+
+data$geometry <- NULL
+data <- data[, c("id", "COM_CODE", "IRISF_CODE", "COMF_CODE", "date", "annee", "prix", "surface", "prixm2")]
+
+
+# Prise en compte de l'inflation
 # https://www.insee.fr/fr/statistiques/4268033#tableau-figure1
 infl <- data.frame(
   annee = 2000:2024,
@@ -106,7 +142,7 @@ infl <- data.frame(
 )
 
 # Inflation cumulee depuis 2000
-infl$indice <- cumprod(1 + infl$inflation/100)
+infl$indice <- cumprod(1 + infl$inflation / 100)
 
 # Indice normalise base 2024 = 1
 infl$facteur_2024 <- infl$indice[length(infl$indice)] / infl$indice
@@ -115,64 +151,71 @@ infl$facteur_2024 <- infl$indice[length(infl$indice)] / infl$indice
 data <- merge(data, infl[, c("annee","facteur_2024")], by = "annee", all.x = TRUE)
 data$prixm2_2024 <- round(data$prixm2 * data$facteur_2024, 0)
 
-head(data)
-
-
-
+# Calculs des variables
 dt <- as.data.table(data)
-setorder(dt, id_xy, date)
+setorder(dt, id, date)
 
-# calcul de la duree en annees entre ventes consecutives
-dt[, delta_annees := c(NA, as.numeric(difftime(date[-1], date[-.N], units = "days"))/365.25), by = id_xy]
+# Calcul de la duree en annees entre ventes consecutives
+dt[, delta_annees := c(NA, as.numeric(difftime(date[-1], date[-.N], units = "days")) / 365.25), by = id]
 
 # Calcul du TVAM
-dt[, tvam := round(100 * ((prixm2_2024 / shift(prixm2_2024))^(1 / delta_annees) - 1), 2), by = id_xy]
+dt[, tvam := round(100 * ((prixm2_2024 / shift(prixm2_2024))^(1 / delta_annees) - 1), 2), by = id]
 
 # Delta prix annualise en €/m²/an
 # dt[, delta_1an := tvam * shift(prixm2_2024), by = id_xy]
 
-
 # Augmentation en euros par m² par an
-dt[, delta_eur_m2 := round((prixm2_2024 - shift(prixm2_2024)) / delta_annees, 2), by = id_xy]
+dt[, delta_eur_m2 := round((prixm2_2024 - shift(prixm2_2024)) / delta_annees, 2), by = id]
 
 # Augmentation totale pour le bien par an
-dt[, delta_eur_tot := round(delta_eur_m2 * surface, 2), by = id_xy]
-
-
+dt[, delta_eur_tot := round(delta_eur_m2 * surface, 2), by = id]
 
 dt_clean <- dt[!(is.na(tvam) | !is.finite(tvam) | tvam < -99 | tvam > 100 ) ]
 
 data <- as.data.frame(dt_clean)
 
 
-
-
 # CARTOGRAPHIE ----------------------------------------------------------------
+mar <- asf_mar(md = "com_xxxx", ma = "com_r2", geom = TRUE)
+
+geom <- mar$geom
+tabl <- mar$tabl
+
+fond <- asf_fond(geom, 
+                 tabl, 
+                 by = "COMF_CODE", 
+                 maille = "COMr2_CODE", 
+                 keep = "DEP")
+
+fond <- asf_drom(fond)
+
 v <- c("Marseille", "Lyon", "Toulouse", "Nantes", "Montpellier",
        "Bordeaux", "Lille", "Rennes", "Reims", "Dijon",
        "Angers", "Grenoble", "Clermont-Ferrand", "Tours", "Perpignan",
        "Besancon", "Rouen", "La Rochelle", "Le Havre", "Nice")
 
-z <- asf_zoom(com_r2, 
+z <- asf_zoom(fond, 
               places = v, 
               r = 15000)
 
+fond_simply <- asf_simplify(fond)
+
 data_r2 <- asf_data(data, 
                     tabl, 
-                    by = "COM_CODE", 
-                    maille = "COMR2_CODE", 
-                    vars = c(11:13),
+                    by = "COMF_CODE", 
+                    maille = "COMr2_CODE", 
+                    vars = c(13:15),
                     funs = "median")
 
-fondata <- asf_fondata(f = com_r2_simply, z = z[[1]], d = data_r2, by = "COMR2_CODE")
+fondata <- asf_fondata(f = fond_simply, z = z[[1]], d = data_r2, by = "COMr2_CODE")
 
 # Limites des com dans les zooms
-com_r2_line <- asf_borders(com_r2, by = "COMR2_CODE")
+fond_line <- asf_borders(fond, by = "COMr2_CODE")
 
-z <- asf_zoom(com_r2_line, 
+z <- asf_zoom(fond_line, 
               places = v, 
               r = 15000, 
-              f_ref = com_r2)
+              f_ref = fond)
 
 palette <- rev(asf_palette(pal = "rhubarbe", nb = 6))
 
@@ -194,22 +237,21 @@ mf_map(z[[1]],
 mf_label(z[[2]], 
          var = "label")
 
-
-breaks <- c(-350, 0, 40, 65, 100, 200, 900)
-
-mf_map(fondata, 
-       var = "delta_eur_m2", 
-       type = "choro", 
-       breaks = breaks, 
-       pal = palette, 
-       border = NA)
-
-mf_map(z[[1]],
-       col = "#fff",
-       add = TRUE)
-
-mf_label(z[[2]], 
-         var = "label")
+# breaks <- c(-6100, 0, 50, 80, 140, 350, 1800)
+# 
+# mf_map(fondata, 
+#        var = "delta_eur_m2", 
+#        type = "choro", 
+#        breaks = breaks, 
+#        pal = palette, 
+#        border = NA)
+# 
+# mf_map(z[[1]],
+#        col = "#fff",
+#        add = TRUE)
+# 
+# mf_label(z[[2]], 
+#          var = "label")
 
 
 
