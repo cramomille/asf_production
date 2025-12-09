@@ -256,6 +256,8 @@ mf_label(z[[2]],
 
 
 # GRAPHIQUES ------------------------------------------------------------------
+tabl <- asf_mar(md = "com_xxxx", ma = "com_r2")
+
 # Clarification des noms
 cateaav_labels <- c(
   "11" = "Commune-Centre",
@@ -275,14 +277,14 @@ taav_labels <- c(
 )
 
 # Nombre de multiventes par type d'AAV
-x <- merge(data, tabl, by = "COM_CODE", all.x = TRUE)
+x <- merge(data, tabl, by = "COMF_CODE", all.x = TRUE)
 x <- aggregate(
-  list(nb_multivente = x$COM_CODE),
-  by = list(COMR2_CODE = x$COMR2_CODE),
+  list(nb_multivente = x$COMF_CODE),
+  by = list(COMr2_CODE = x$COMr2_CODE),
   FUN = length
 )
 
-x <- merge(x, tabl, by = "COMR2_CODE", all.x = TRUE)
+x <- merge(x, tabl, by = "COMr2_CODE", all.x = TRUE)
 
 x$TAAV2017 <- taav_labels[as.character(x$TAAV2017)]
 x$CATEAAV2020 <- cateaav_labels[as.character(x$CATEAAV2020)]
@@ -312,7 +314,7 @@ asf_plot_vars(x, vars = "nb_multivente", typo = c("TAAV2017", "CATEAAV2020"), ef
                           "Commune-Centre"))
 
 # Delta_prixm² par type d'AAV
-x <- merge(data, tabl, by = "COM_CODE", all.x = TRUE)
+x <- merge(data, tabl, by = "COMF_CODE", all.x = TRUE)
 x <- aggregate(
   x = list(delta_eur_m2 = x$delta_eur_m2),
   by = list(
