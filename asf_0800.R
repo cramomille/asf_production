@@ -23,7 +23,7 @@ tabl <- mar$tabl
 comr <- asf_fond(geom, 
                  tabl, 
                  by = "COMF_CODE", 
-                 maille = "COMR2_CODE", 
+                 maille = "COMr2_CODE", 
                  keep = "DEP")
 
 
@@ -31,13 +31,13 @@ comr <- asf_fond(geom,
 # Chargement du fichier FILOCOM -----------------------------------------------
 comr_revenu <- read.csv("input/asf_0800/decile_revucm_comar.csv")
 comr_revenu <- comr_revenu[, c("comar", "d5_2022")]
-names(comr_revenu)[1] <- "COMR2_CODE"
+names(comr_revenu)[1] <- "COMr2_CODE"
 
 # Chargement des fichiers DVF -------------------------------------------------
 pre <- "https://sharedocs.huma-num.fr/wl/?id="
 suf <- "&mode=grid&download=1"
-                       
-dvf <- list(dvf_2014 = paste0(pre, "vp4DTsuh5ctsBwGTzCSzgdKvZ3HnreAf", suf),
+
+dvf <- list(dvf_2014 = paste0(pre, "HzUYLc0qcchwzbQhbl1hrTs0KNhtMCCO", suf),
             dvf_2015 = paste0(pre, "QJ3AiWOCYVCkYN6Z0FzqI2yMM7Fu0Jhp", suf),
             dvf_2016 = paste0(pre, "OshgupIqPkg70hEMB7DdSpbsFDuTeAMN", suf),
             dvf_2017 = paste0(pre, "E0Xc2Ahyb0UUGoHFL6JR704dpQnUE7wK", suf),
@@ -45,8 +45,8 @@ dvf <- list(dvf_2014 = paste0(pre, "vp4DTsuh5ctsBwGTzCSzgdKvZ3HnreAf", suf),
             dvf_2019 = paste0(pre, "6muOpXEStHm1Y56YUNv93n14zx2QSQ9i", suf),
             dvf_2020 = paste0(pre, "iq9S63LevHYxoDMCkL01bNQBeE4YlWYx", suf),
             dvf_2021 = paste0(pre, "XYI1SDuWfYRXfCtuz0jvcz7C4LuLi5Qg", suf),
-            dvf_2022 = paste0(pre, "5sYwnTlHiFAiTtgD9ZqUeNuEAUTo5T7F", suf),
-            dvf_2023 = paste0(pre, "4l09Pfh8OGPICchf9PQEw4X4kdvjOR5P", suf),
+            dvf_2022 = paste0(pre, "3yDxA8KiuyFDwSvgz9BxnJDG6zVFX2dd", suf),
+            dvf_2023 = paste0(pre, "I2Zvl3aprq9ue3l27hleoiTWIMZyjhII", suf),
             dvf_2024 = paste0(pre, "oSMYbBxT6OWaePSLPydnXOJYoQE3tOID", suf)
 )
 
@@ -77,7 +77,7 @@ filter_dvf <- function(dvf, id, type_bien) {
   com_nomb <- tapply(dvf_filtered$prix, dvf_filtered[[id]], length)
   
   # Convertir en data.frame
-  result <- data.frame(COMR2_CODE = names(com_prix),
+  result <- data.frame(COMr2_CODE = names(com_prix),
                        prix = as.vector(com_prix),
                        nb = as.vector(com_nomb))
   
@@ -88,10 +88,10 @@ filter_dvf <- function(dvf, id, type_bien) {
   return(result)
 }
 
-maison <- filter_dvf(comr_dvf, "COMR2_CODE", "Maison")
-appart <- filter_dvf(comr_dvf, "COMR2_CODE", "Appartement")
+maison <- filter_dvf(comr_dvf, "COMr2_CODE", "Maison")
+appart <- filter_dvf(comr_dvf, "COMr2_CODE", "Appartement")
 
-comr_dvf <- merge(maison, appart, by = "COMR2_CODE", all = TRUE)
+comr_dvf <- merge(maison, appart, by = "COMr2_CODE", all = TRUE)
 
 rm(a, b, pre, suf, dvf, maison, appart)
 
@@ -137,7 +137,7 @@ comr_loyer <- asf_data(d = loyer,
                        t = tabl, 
                        by.x = "Code",
                        by.y = "COM_CODE",
-                       maille = "COMR2_CODE",
+                       maille = "COMr2_CODE",
                        vars = c(3:6),
                        funs = c("prod1", "prod2", "coef1", "coef2"))
 
@@ -146,11 +146,11 @@ rm(arr, arr_com, arr_loyer, pop, loyer)
 
 # TRAITEMENTS A PARTIR DES AUTRES FONCTIONS D'ASF -----------------------------
 # Traitement sur les donnees
-data <- merge(comr_revenu, comr_loyer, by = "COMR2_CODE", all = TRUE)
-data <- merge(data, comr_dvf, by = "COMR2_CODE", all = TRUE)
+data <- merge(comr_revenu, comr_loyer, by = "COMr2_CODE", all = TRUE)
+data <- merge(data, comr_dvf, by = "COMr2_CODE", all = TRUE)
 
 # Creation du fond et des zooms
-fond <- asf_drom(comr, id = "COMR2_CODE")
+fond <- asf_drom(comr)
 
 z <- asf_zoom(fond,
               places = c("Marseille", "Lyon", "Toulouse", "Nantes", "Montpellier",
@@ -169,7 +169,7 @@ fond <- asf_simplify(fond, keep = 0.1)
 fondata <- asf_fondata(f = fond,
                        z = zoom,
                        d = data,
-                       by = "COMR2_CODE")
+                       by = "COMr2_CODE")
 
 
 # CALCUL DE L'INDICE D'ABORDABILITE -------------------------------------------
@@ -221,15 +221,15 @@ fondata$typo_a <- with(fondata,
                        ifelse(abord_app >= q_a[5] & abord_app_loc > 30, 12,
                        NA)))))))))))))
 
-# Comptage des effectifs et conversion en pourcentage
-tmp <- table(fondata$typo_m, useNA = "ifany")
-prop_m <- round(100 * tmp / sum(tmp), 2)
-prop_m
-
-# Comptage des effectifs et conversion en pourcentage
-tmp <- table(fondata$typo_a, useNA = "ifany")
-prop_a <- round(100 * tmp / sum(tmp), 2)
-prop_a
+# # Comptage des effectifs et conversion en pourcentage
+# tmp <- table(fondata$typo_m, useNA = "ifany")
+# prop_m <- round(100 * tmp / sum(tmp), 2)
+# prop_m
+# 
+# # Comptage des effectifs et conversion en pourcentage
+# tmp <- table(fondata$typo_a, useNA = "ifany")
+# prop_a <- round(100 * tmp / sum(tmp), 2)
+# prop_a
 
 
 # CREATION DE CARTES ----------------------------------------------------------
@@ -262,6 +262,22 @@ mf_map(dep,
 
 mf_label(label, 
          var = "label")
+
+
+
+# EXPORT POUR LA CARTO INTERACTIVE --------------------------------------------
+export <- fondata[, c(1, 11:16)]
+export$geometry <- NULL
+export[, c(2:3)] <- round(export[, c(2:3)], 1)
+export[, c(4:5)] <- round(export[, c(2:3)], 0)
+
+t <- tabl <- tabl[!duplicated(tabl$COMr2_CODE), ]
+
+export <- merge(t[, c(4, 5)], export, by = "COMr2_CODE")
+
+write.csv(export, "planche_0800.csv", row.names = FALSE)
+
+
 
 
 # CREATION DE GRAPHIQUES SUR LES AAV ------------------------------------------
