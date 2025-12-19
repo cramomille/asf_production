@@ -38,16 +38,16 @@ pre <- "https://sharedocs.huma-num.fr/wl/?id="
 suf <- "&mode=grid&download=1"
 
 dvf <- list(dvf_2014 = paste0(pre, "HzUYLc0qcchwzbQhbl1hrTs0KNhtMCCO", suf),
-            dvf_2015 = paste0(pre, "QJ3AiWOCYVCkYN6Z0FzqI2yMM7Fu0Jhp", suf),
-            dvf_2016 = paste0(pre, "OshgupIqPkg70hEMB7DdSpbsFDuTeAMN", suf),
-            dvf_2017 = paste0(pre, "E0Xc2Ahyb0UUGoHFL6JR704dpQnUE7wK", suf),
-            dvf_2018 = paste0(pre, "I22yu03q8W53XEFSb0voebmdi0ORUzUl", suf),
-            dvf_2019 = paste0(pre, "6muOpXEStHm1Y56YUNv93n14zx2QSQ9i", suf),
-            dvf_2020 = paste0(pre, "iq9S63LevHYxoDMCkL01bNQBeE4YlWYx", suf),
-            dvf_2021 = paste0(pre, "XYI1SDuWfYRXfCtuz0jvcz7C4LuLi5Qg", suf),
+            dvf_2015 = paste0(pre, "PydNgajOSCBUTCtqA4WQaerFvNaVNl3F", suf),
+            dvf_2016 = paste0(pre, "8xC1lMuHHtrb3PKiyV89xDdGrDAsMBv7", suf),
+            dvf_2017 = paste0(pre, "HAYU3oU5sdNh7gRnW8Bn8UklS6lZ4BIg", suf),
+            dvf_2018 = paste0(pre, "Qjuf32V502nNMykXAL2o6miwYuwvM4RZ", suf),
+            dvf_2019 = paste0(pre, "KZXvpPRUEKEJeZGx3n2o7Oafx4y2tU7B", suf),
+            dvf_2020 = paste0(pre, "Ur29h89masp31M2c9osIHTMV7JxutWs5", suf),
+            dvf_2021 = paste0(pre, "lgqmAEg4kv4P48c50jaKqlNpzlE0dgZq", suf),
             dvf_2022 = paste0(pre, "3yDxA8KiuyFDwSvgz9BxnJDG6zVFX2dd", suf),
             dvf_2023 = paste0(pre, "I2Zvl3aprq9ue3l27hleoiTWIMZyjhII", suf),
-            dvf_2024 = paste0(pre, "oSMYbBxT6OWaePSLPydnXOJYoQE3tOID", suf)
+            dvf_2024 = paste0(pre, "NJHBVnyL7jCyJorSwk6VjHvIlTljt4vP", suf)
 )
 
 a <- read.csv(dvf[[9]])
@@ -267,16 +267,12 @@ mf_label(label,
 
 # EXPORT POUR LA CARTO INTERACTIVE --------------------------------------------
 export <- fondata[, c(1, 11:16)]
-export$geometry <- NULL
-export[, c(2:3)] <- round(export[, c(2:3)], 1)
-export[, c(4:5)] <- round(export[, c(2:3)], 0)
+export[, c(2:3)] <- round(sf::st_drop_geometry(export)[, 2:3], 1)
+export[, c(4:5)] <- round(sf::st_drop_geometry(export)[, 4:5], 0)
 
 t <- tabl <- tabl[!duplicated(tabl$COMr2_CODE), ]
 
 export <- merge(t[, c(4, 5)], export, by = "COMr2_CODE")
-
-write.csv(export, "planche_0800.csv", row.names = FALSE)
-
 
 
 
@@ -331,10 +327,10 @@ write.csv(export, "planche_0800.csv", row.names = FALSE)
 
 ###############################################################################
 
-tabl <-  tabl[, c("COMR_CODE", "TAAV2017")]
-tabl <- tabl[!duplicated(tabl$COMR_CODE), ]
+tabl <-  tabl[, c("COMr2_CODE", "TAAV2017")]
+tabl <- tabl[!duplicated(tabl$COMr2_CODE), ]
 
-tmp <- merge(fondata, tabl, by = "COMR_CODE")
+tmp <- merge(fondata, tabl, by = "COMr2_CODE")
 
 # Calcul des q6
 tmp <- tmp[!is.na(tmp$abord_mai), ]
@@ -369,17 +365,17 @@ asf_plot_typo(d = tmp,
 pre <- "https://sharedocs.huma-num.fr/wl/?id="
 suf <- "&mode=grid&download=1"
 
-data <- list(dvf_2014 = paste0(pre, "vp4DTsuh5ctsBwGTzCSzgdKvZ3HnreAf", suf),
-             dvf_2015 = paste0(pre, "QJ3AiWOCYVCkYN6Z0FzqI2yMM7Fu0Jhp", suf),
-             dvf_2016 = paste0(pre, "OshgupIqPkg70hEMB7DdSpbsFDuTeAMN", suf),
-             dvf_2017 = paste0(pre, "E0Xc2Ahyb0UUGoHFL6JR704dpQnUE7wK", suf),
-             dvf_2018 = paste0(pre, "I22yu03q8W53XEFSb0voebmdi0ORUzUl", suf),
-             dvf_2019 = paste0(pre, "6muOpXEStHm1Y56YUNv93n14zx2QSQ9i", suf),
-             dvf_2020 = paste0(pre, "iq9S63LevHYxoDMCkL01bNQBeE4YlWYx", suf),
-             dvf_2021 = paste0(pre, "XYI1SDuWfYRXfCtuz0jvcz7C4LuLi5Qg", suf),
-             dvf_2022 = paste0(pre, "5sYwnTlHiFAiTtgD9ZqUeNuEAUTo5T7F", suf),
-             dvf_2023 = paste0(pre, "4l09Pfh8OGPICchf9PQEw4X4kdvjOR5P", suf),
-             dvf_2024 = paste0(pre, "oSMYbBxT6OWaePSLPydnXOJYoQE3tOID", suf)
+data <- list(dvf_2014 = paste0(pre, "HzUYLc0qcchwzbQhbl1hrTs0KNhtMCCO", suf),
+             dvf_2015 = paste0(pre, "PydNgajOSCBUTCtqA4WQaerFvNaVNl3F", suf),
+             dvf_2016 = paste0(pre, "8xC1lMuHHtrb3PKiyV89xDdGrDAsMBv7", suf),
+             dvf_2017 = paste0(pre, "HAYU3oU5sdNh7gRnW8Bn8UklS6lZ4BIg", suf),
+             dvf_2018 = paste0(pre, "Qjuf32V502nNMykXAL2o6miwYuwvM4RZ", suf),
+             dvf_2019 = paste0(pre, "KZXvpPRUEKEJeZGx3n2o7Oafx4y2tU7B", suf),
+             dvf_2020 = paste0(pre, "Ur29h89masp31M2c9osIHTMV7JxutWs5", suf),
+             dvf_2021 = paste0(pre, "lgqmAEg4kv4P48c50jaKqlNpzlE0dgZq", suf),
+             dvf_2022 = paste0(pre, "3yDxA8KiuyFDwSvgz9BxnJDG6zVFX2dd", suf),
+             dvf_2023 = paste0(pre, "I2Zvl3aprq9ue3l27hleoiTWIMZyjhII", suf),
+             dvf_2024 = paste0(pre, "NJHBVnyL7jCyJorSwk6VjHvIlTljt4vP", suf)
 )
 
 rd1 <- c(5720, #2013
@@ -421,7 +417,7 @@ rd9 <- c(36068, #2013
          43503  #2023
 )
 
-tabl <- asf_mar(maille = "comr", geom = FALSE)
+tabl <- asf_mar(md = "com_xxxx", ma = "com_r2")
 tabl <- tabl[, c(1, 4, 5, 18)]
 
 # Initialisation d'une liste pour stocker les resultats
@@ -430,44 +426,74 @@ appart <- list()
 
 # Boucle sur les fichiers et les valeurs de division
 for (i in seq_along(data)) {
+  
+  rev <- rd9
 
   # Chargement du fichier
   dvf <- read.csv(data[[i]])
   dvf <- dvf[, c(9, 5, 6)]
   
   mar <- merge(tabl, dvf, by.x = "COM_CODE", by.y = "codecommune")
-  mar <- mar[, c("COMR_CODE", "type", "prix")]
+  mar <- mar[, c("COMr2_CODE", "type", "prix")]
   
   # Filtrage du type de bien (Maison ou Appartement)
   mai <- mar[mar$type == "Maison", ]
   app <- mar[mar$type == "Appartement", ]
 
   # Agregation par groupe de communes
-  mai <- aggregate(prix ~ COMR_CODE, mai, FUN = median, na.rm = TRUE)
-  app <- aggregate(prix ~ COMR_CODE, app, FUN = median, na.rm = TRUE)
+  mai <- aggregate(prix ~ COMr2_CODE, mai, FUN = median, na.rm = TRUE)
+  app <- aggregate(prix ~ COMr2_CODE, app, FUN = median, na.rm = TRUE)
   
   # Calcul des deciles
-  decile_mai <- quantile(mai$prix, probs = seq(0.1, 0.9, 0.1))
-  decile_app <- quantile(app$prix, probs = seq(0.1, 0.9, 0.1))
+  brks_mai <- quantile(mai$prix, probs = seq(0, 1, 0.1), na.rm = TRUE)
+  brks_app <- quantile(app$prix, probs = seq(0, 1, 0.1), na.rm = TRUE)
+  
+  mai$decile <- cut(
+    mai$prix,
+    breaks = brks_mai,
+    include.lowest = TRUE,
+    labels = paste0("D", 1:10)
+  )
+  
+  app$decile <- cut(
+    app$prix,
+    breaks = brks_app,
+    include.lowest = TRUE,
+    labels = paste0("D", 1:10)
+  )
+  
+  mai_dec <- aggregate(
+    prix ~ decile,
+    data = mai,
+    FUN = median,
+    na.rm = TRUE
+  )
+
+  app_dec <- aggregate(
+    prix ~ decile,
+    data = app,
+    FUN = median,
+    na.rm = TRUE
+  )
   
   # Stockage des resultats
   maison[[i]] <- data.frame(
-    abord = round(decile_mai / rd5[i], 1)
+    abord = round(mai_dec$prix / rev[i], 1)
   )
   appart[[i]] <- data.frame(
-    abord = round(decile_app / rd5[i], 1)
+    abord = round(app_dec$prix / rev[i], 1)
   )
   
   # Renommer les colonnes pour chaque annee
   colnames(maison[[i]]) <- paste0(colnames(maison[[i]]), "_", substr(names(data)[i], 5, 8))
   colnames(appart[[i]]) <- paste0(colnames(appart[[i]]), "_", substr(names(data)[i], 5, 8))
   
-  print(".")
+  print(i)
 }
 
 # Fusionner tous les tableaux par la colonne des deciles
-maison_d5 <- do.call(cbind, maison)
-appart_d5 <- do.call(cbind, appart)
+maison_d9 <- do.call(cbind, maison)
+appart_d9 <- do.call(cbind, appart)
 
 # Creation des graphiques
 breaks <- c(0, 2, 4, 6, 8, 10, Inf)
@@ -476,7 +502,8 @@ tableau <- appart_d5
 breaks <- c(0, 4, 7, 9, 12, 18, Inf)
 tableau <- maison_d5
 
-tableau$decile = c("10%","20%","30%","40%","50%","60%","70%","80%","90%")
+
+tableau$decile = c("D01","D02","D03","D04","D05","D06","D07","D08","D09","D10")
 
 # Transformation des donnees en format long
 tableau_long <- melt(tableau, id.vars = "decile")
@@ -504,5 +531,5 @@ ggplot(tableau_long, aes(x = annee, y = decile, fill = classe)) +
   scale_fill_manual(values = palette) +  # couleurs
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +  # rotation des labels
-  labs(title = "Évolution des valeurs par décile et année", 
+  labs(title = "Evolution des valeurs par decile et annee", 
        fill = "Classe de Valeur")
