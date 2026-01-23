@@ -12,7 +12,7 @@ library(mapsf)
 
 # IMPORT DU FOND D'ALIETTE ROUX -----------------------------------------------
 # Lecture des fichiers
-mar <- asf_mar(md = "com_xxxx", ma = "com_r2", geom = TRUE)
+mar <- asf_mar(md = "com_xxxx", ma = "com_r2", geom = TRUE, dir = "input/mar/")
 
 tabl <- mar$tabl
 geom <- mar$geom
@@ -21,11 +21,10 @@ geom <- mar$geom
 fond <- asf_fond(f = geom, 
                  t = tabl, 
                  by = "COMF_CODE", 
-                 maille = "COMR2_CODE", 
+                 maille = "COMr2_CODE", 
                  keep = "DEP")
 
-# Repositionnement des geometries des DROM
-fond <- asf_drom(fond, id = "COMR2_CODE")
+fond_carte <- asf_drom(fond)
 
 
 # IMPORT ET NETTOYAGE DU TABLEAU DE DONNEES -----------------------------------
@@ -35,33 +34,36 @@ summary(nchar(data$COM))
 data$id_tmp <- substr(data$COM, 1, 5)
 data <- data[, c(2,3,7)]
 
-fond$id_tmp <- substr(fond$COMR2_CODE, 1, 5)
+fond$id_tmp <- substr(fond$COMr2_CODE, 1, 5)
+fond_carte$id_tmp <- substr(fond_carte$COMr2_CODE, 1, 5)
 
 z <- asf_zoom(f = fond, 
-              places = c("Paris", "Marseille", "Lyon", "Toulouse", "Nantes", "Montpellier",
-                         "Bordeaux", "Lille", "Rennes", "Reims", "Dijon",
-                         "Angers", "Grenoble", "Clermont-Ferrand", "Tours", "Perpignan",
-                         "Besancon", "Rouen", "La Rochelle", "Le Havre", "Nice",
-                         "Orleans", "Troyes", "Bourges", "Dunkerque", "Annecy"), 
+              places = c("Paris", "Marseille", "Lyon", "Toulouse", 
+                         "Montpellier", "Lille", "Rennes", "Reims", 
+                         "Dijon", "Angers", "Grenoble", "Tours", 
+                         "Perpignan", "La Rochelle"  , "Troyes"), 
               coords = c(0.545, 46.815,
                          2.068, 47.221,
-                         -1.548, 43.471,
-                         2.957, 48.387,
-                         4.080, 49.924,
-                         3.570, 47.797
-                         ), 
-              labels = c("Chatellerault", "Vierzon", "Biarritz", "Montereau-Fault-Yonne", "Hirson", "Auxerre"), 
-              r = 20000)
+                         3.797, 47.815,
+                         6.236, 46.187,
+                         -61.068, 14.607), 
+              labels = c("Chatellerault", "Vierzon", "Chablis", "Annemasse", "Fort-de-France"), 
+              epsg = c("20" = "5490"),
+              r = 20000, 
+              f_ref = fond_carte)
 
 zoom <- z$zooms
 label <- z$labels
 
-fond <- asf_simplify(fond, keep = 0.5)
+# Repositionnement des geometries des DROM et simplification des geometries
+fond_carte_simply <- asf_simplify(fond_carte, keep = 0.1)
 
-fondata <- asf_fondata(fond, zoom, data[, -1], by = "id_tmp")
+fondata <- asf_fondata(fond_carte_simply, zoom, data[, -1], by = "id_tmp")
 
 
 # CREATION DE CARTES ----------------------------------------------------------
+dep <- asf_borders(fond_carte, by = "DEP", keep = 0.025)
+
 # Definition d'une palette de couleurs
 pal <- c(
   "1" = "#fddaac",
@@ -81,10 +83,36 @@ mf_map(fondata,
        pal = pal, 
        border = NA)
 
+mf_map(dep, col = "#fff", add = TRUE)
+
 mf_label(label, 
          var = "label", 
          col = "#000000", 
          cex = 0.3)
+
+
+
+
+
+
+
+
+# Habillage
+monde <- st_read("C:/Users/Antoine/Desktop/explor/input/monde_1M.gpkg")
+monde <- st_transform(monde, 2154)
+monde <- asf_simplify(monde, keep = 0.15)
+
+mf_map(fond_carte_simply, border = NA)
+mf_map(monde, col = NA, border = "red", add = TRUE)
+
+
+
+
+
+
+
+
+
 
 
 tvma <- read.csv("C:/Users/Antoine/Desktop/casd/export/TREVPOP_export_06/donnees/cah_tvma.csv")
