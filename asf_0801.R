@@ -108,7 +108,7 @@ data <- st_as_sf(
 
 data <- st_transform(data, 2154)
 
-geom <- asf_mar(geom = TRUE)
+geom <- asf_mar(geom = TRUE, dir = "input/mar/")
 
 # Jointure spatiale
 data <- st_join(data, geom[, c("IRISF_CODE", "COMF_CODE")])
@@ -174,9 +174,11 @@ dt_clean <- dt[!(is.na(tvam) | !is.finite(tvam) | tvam < -99 | tvam > 100 ) ]
 
 data <- as.data.frame(dt_clean)
 
+saveRDS(data, "output/asf_0801/data_multi.rds")
+
 
 # CARTOGRAPHIE ----------------------------------------------------------------
-mar <- asf_mar(md = "com_xxxx", ma = "com_r2", geom = TRUE)
+mar <- asf_mar(md = "com_xxxx", ma = "com_r2", geom = TRUE, dir = "input/mar/")
 
 geom <- mar$geom
 tabl <- mar$tabl
@@ -200,12 +202,17 @@ z <- asf_zoom(fond,
 
 fond_simply <- asf_simplify(fond)
 
+
+data <- readRDS("output/asf_0801/data_multi.rds")
+
+data$nb <- 1
+
 data_r2 <- asf_data(data, 
                     tabl, 
                     by = "COMF_CODE", 
                     maille = "COMr2_CODE", 
-                    vars = c(13:15),
-                    funs = "median")
+                    vars = c(13:16),
+                    funs = c("median", "median", "median", "sum"))
 
 fondata <- asf_fondata(f = fond_simply, z = z[[1]], d = data_r2, by = "COMr2_CODE")
 
@@ -252,6 +259,24 @@ mf_label(z[[2]],
 # 
 # mf_label(z[[2]], 
 #          var = "label")
+
+breaks <- c(-6100, 0, 50, 80, 140, 350, 1800)
+
+mf_map(fondata, border = NA)
+mf_map(z[[1]], lwd = 0.1, add = TRUE)
+mf_map(fondata,
+       var = c("delta_eur_m2", "nb"),
+       type = "prop_choro",
+       breaks = breaks, 
+       pal = palette, 
+       inches = 0.04, 
+       lwd = 0.1,
+       add = TRUE)
+
+
+write.csv(data_r2, "data_r2.csv")
+
+
 
 
 
