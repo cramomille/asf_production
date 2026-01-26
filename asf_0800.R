@@ -69,7 +69,7 @@ comr_dvf <- merge(tabl, dvf, by.x = "COM_CODE", by.y = "codecommune")
 # Fonction pour traiter un type de bien (Maison/Appartement)
 filter_dvf <- function(dvf, id, type_bien) {
   
-  # Filtrer les données pour le type de bien
+  # Filtrer les donnees pour le type de bien
   dvf_filtered <- dvf[dvf$type == type_bien, ]
   
   # Calcul des agregations par regroupement de communes
@@ -265,17 +265,6 @@ mf_label(label,
 
 
 
-# EXPORT POUR LA CARTO INTERACTIVE --------------------------------------------
-export <- fondata[, c(1, 11:16)]
-export[, c(2:3)] <- round(sf::st_drop_geometry(export)[, 2:3], 1)
-export[, c(4:5)] <- round(sf::st_drop_geometry(export)[, 4:5], 0)
-
-t <- tabl <- tabl[!duplicated(tabl$COMr2_CODE), ]
-
-export <- merge(t[, c(4, 5)], export, by = "COMr2_CODE")
-
-
-
 # CREATION DE GRAPHIQUES SUR LES AAV ------------------------------------------
 # asf_mar()
 # tmp <- fondata[, c(1, 2, 11, 12)]
@@ -327,7 +316,7 @@ export <- merge(t[, c(4, 5)], export, by = "COMr2_CODE")
 
 ###############################################################################
 
-tabl <-  tabl[, c("COMr2_CODE", "TAAV2017")]
+tabl <- tabl[, c("COMr2_CODE", "TAAV2017")]
 tabl <- tabl[!duplicated(tabl$COMr2_CODE), ]
 
 tmp <- merge(fondata, tabl, by = "COMr2_CODE")
@@ -427,7 +416,7 @@ appart <- list()
 # Boucle sur les fichiers et les valeurs de division
 for (i in seq_along(data)) {
   
-  rev <- rd9
+  rev <- rd5
 
   # Chargement du fichier
   dvf <- read.csv(data[[i]])
@@ -492,8 +481,8 @@ for (i in seq_along(data)) {
 }
 
 # Fusionner tous les tableaux par la colonne des deciles
-maison_d9 <- do.call(cbind, maison)
-appart_d9 <- do.call(cbind, appart)
+maison_d5 <- do.call(cbind, maison)
+appart_d5 <- do.call(cbind, appart)
 
 # Creation des graphiques
 breaks <- c(0, 2, 4, 6, 8, 10, Inf)
