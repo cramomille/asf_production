@@ -178,15 +178,15 @@ saveRDS(data, "output/asf_0801/data_multi.rds")
 
 
 # CARTOGRAPHIE ----------------------------------------------------------------
-mar <- asf_mar(md = "com_xxxx", ma = "com_r2", geom = TRUE, dir = "input/mar/")
+mar <- asf_mar(md = "iris_xxxx", ma = "iris_r5", geom = TRUE, dir = "input/mar/")
 
 geom <- mar$geom
 tabl <- mar$tabl
 
 fond <- asf_fond(geom, 
                  tabl, 
-                 by = "COMF_CODE", 
-                 maille = "COMr2_CODE", 
+                 by = "IRISF_CODE", 
+                 maille = "IRISr5_CODE", 
                  keep = "DEP")
 
 fond <- asf_drom(fond)
@@ -207,17 +207,17 @@ data <- readRDS("output/asf_0801/data_multi.rds")
 
 data$nb <- 1
 
-data_r2 <- asf_data(data, 
-                    tabl, 
-                    by = "COMF_CODE", 
-                    maille = "COMr2_CODE", 
-                    vars = c(13:16),
-                    funs = c("median", "median", "median", "sum"))
+data_r <- asf_data(data, 
+                   tabl, 
+                   by = "IRISF_CODE", 
+                   maille = "IRISr5_CODE", 
+                   vars = c(13:16),
+                   funs = c("median", "median", "median", "sum"))
 
-fondata <- asf_fondata(f = fond_simply, z = z[[1]], d = data_r2, by = "COMr2_CODE")
+fondata <- asf_fondata(f = fond_simply, z = z[[1]], d = data_r, by = "IRISr5_CODE")
 
 # Limites des com dans les zooms
-fond_line <- asf_borders(fond, by = "COMr2_CODE")
+fond_line <- asf_borders(fond, by = "IRISr5_CODE")
 
 z <- asf_zoom(fond_line, 
               places = v, 
@@ -226,55 +226,54 @@ z <- asf_zoom(fond_line,
 
 palette <- rev(asf_palette(pal = "rhubarbe", nb = 6))
 
-q6 <- quantile(fondata$delta_eur_m2, 
-               probs = c(0, 0.05, 0.25, 0.5, 0.75, 0.95, 1), 
-               na.rm = TRUE)
+b <- quantile(fondata$delta_eur_m2, 
+              probs = c(0, 0.05, 0.25, 0.5, 0.75, 0.95, 1), 
+              na.rm = TRUE)
+
+# COMr2
+b <- c(min(fondata$delta_eur_m2, na.rm = TRUE), 
+       0, 40, 70, 100, 200, 
+       max(fondata$delta_eur_m2, na.rm = TRUE))
+
+# IRISr2
+b <- c(min(fondata$delta_eur_m2, na.rm = TRUE), 
+       0, 50, 80, 140, 300, 
+       max(fondata$delta_eur_m2, na.rm = TRUE))
+
+# IRISr5
+b <- c(min(fondata$delta_eur_m2, na.rm = TRUE), 
+       0, 50, 80, 140, 300, 
+       max(fondata$delta_eur_m2, na.rm = TRUE))
+
 
 mf_map(fondata, 
        var = "delta_eur_m2", 
        type = "choro", 
-       breaks = q6, 
+       breaks = b, 
        pal = palette, 
        border = NA)
 
 mf_map(z[[1]],
-       col = "#fff",
+       col = "#fff", 
+       lwd = 0.1,
        add = TRUE)
 
 mf_label(z[[2]], 
          var = "label")
 
-# breaks <- c(-6100, 0, 50, 80, 140, 350, 1800)
-# 
-# mf_map(fondata, 
-#        var = "delta_eur_m2", 
-#        type = "choro", 
+
+
+# mf_map(fondata, border = NA)
+# mf_map(z[[1]], lwd = 0.1, add = TRUE)
+# mf_map(fondata,
+#        var = c("delta_eur_m2", "nb"),
+#        type = "prop_choro",
 #        breaks = breaks, 
 #        pal = palette, 
-#        border = NA)
-# 
-# mf_map(z[[1]],
-#        col = "#fff",
+#        inches = 0.04, 
+#        lwd = 0.1,
 #        add = TRUE)
-# 
-# mf_label(z[[2]], 
-#          var = "label")
 
-breaks <- c(-6100, 0, 50, 80, 140, 350, 1800)
-
-mf_map(fondata, border = NA)
-mf_map(z[[1]], lwd = 0.1, add = TRUE)
-mf_map(fondata,
-       var = c("delta_eur_m2", "nb"),
-       type = "prop_choro",
-       breaks = breaks, 
-       pal = palette, 
-       inches = 0.04, 
-       lwd = 0.1,
-       add = TRUE)
-
-
-write.csv(data_r2, "data_r2.csv")
 
 
 
