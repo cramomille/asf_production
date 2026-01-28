@@ -77,39 +77,18 @@ pal <- c(
   "9" = "#e50040"
 )
 
-mf_map(fondata, 
-       var = "CLASS9", 
-       type = "typo", 
-       pal = pal, 
+mf_map(fondata,
+       var = "CLASS9",
+       type = "typo",
+       pal = pal,
        border = NA)
 
 mf_map(dep, col = "#fff", add = TRUE)
 
-mf_label(label, 
-         var = "label", 
-         col = "#000000", 
+mf_label(label,
+         var = "label",
+         col = "#000000",
          cex = 0.3)
-
-
-
-
-
-
-
-
-# Habillage
-monde <- st_read("C:/Users/Antoine/Desktop/explor/input/monde_1M.gpkg")
-monde <- st_transform(monde, 2154)
-monde <- asf_simplify(monde, keep = 0.15)
-
-mf_map(fond_carte_simply, border = NA)
-mf_map(monde, col = NA, border = "red", add = TRUE)
-
-
-
-
-
-
 
 
 
