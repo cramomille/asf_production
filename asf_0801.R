@@ -177,7 +177,7 @@ data <- as.data.frame(dt_clean)
 saveRDS(data, "output/asf_0801/data_multi.rds")
 
 
-# CARTOGRAPHIE ----------------------------------------------------------------
+# CARTE CHOROPLETHE -----------------------------------------------------------
 mar <- asf_mar(md = "iris_xxxx", ma = "iris_r5", geom = TRUE, dir = "input/mar/")
 
 geom <- mar$geom
@@ -205,24 +205,22 @@ fond_simply <- asf_simplify(fond)
 
 data <- readRDS("output/asf_0801/data_multi.rds")
 
-data$nb <- 1
-
 data_r <- asf_data(data, 
                    tabl, 
                    by = "IRISF_CODE", 
                    maille = "IRISr5_CODE", 
-                   vars = c(13:16),
-                   funs = c("median", "median", "median", "sum"))
+                   vars = c(13:15),
+                   funs = c("median", "median", "median"))
 
 fondata <- asf_fondata(f = fond_simply, z = z[[1]], d = data_r, by = "IRISr5_CODE")
 
 # Limites des com dans les zooms
 fond_line <- asf_borders(fond, by = "IRISr5_CODE")
 
-z <- asf_zoom(fond_line, 
-              places = v, 
-              r = 15000, 
-              f_ref = fond)
+zl <- asf_zoom(fond_line, 
+               places = v, 
+               r = 15000, 
+               f_ref = fond)
 
 palette <- rev(asf_palette(pal = "rhubarbe", nb = 6))
 
@@ -245,7 +243,6 @@ b <- c(min(fondata$delta_eur_m2, na.rm = TRUE),
        0, 50, 80, 140, 300, 
        max(fondata$delta_eur_m2, na.rm = TRUE))
 
-
 mf_map(fondata, 
        var = "delta_eur_m2", 
        type = "choro", 
@@ -253,7 +250,7 @@ mf_map(fondata,
        pal = palette, 
        border = NA)
 
-mf_map(z[[1]],
+mf_map(zl[[1]],
        col = "#fff", 
        lwd = 0.1,
        add = TRUE)
@@ -263,23 +260,104 @@ mf_label(z[[2]],
 
 
 
-# mf_map(fondata, border = NA)
-# mf_map(z[[1]], lwd = 0.1, add = TRUE)
-# mf_map(fondata,
-#        var = c("delta_eur_m2", "nb"),
-#        type = "prop_choro",
-#        breaks = breaks, 
-#        pal = palette, 
-#        inches = 0.04, 
-#        lwd = 0.1,
-#        add = TRUE)
+# CARTE PROPORTIONNELLE -------------------------------------------------------
+mar <- asf_mar(md = "iris_xxxx", ma = "iris_r2", geom = TRUE, dir = "input/mar/")
+
+geom <- mar$geom
+tabl <- mar$tabl
+
+geom <- asf_drom(geom)
+
+fond <- asf_fond(geom, 
+                 tabl, 
+                 by = "IRISF_CODE", 
+                 maille = "IRISrD_CODE", 
+                 keep = "DEP")
+
+v <- c("Marseille", "Lyon", "Toulouse", "Nantes", "Montpellier",
+       "Bordeaux", "Lille", "Rennes", "Reims", "Dijon",
+       "Angers", "Grenoble", "Clermont-Ferrand", "Tours", "Perpignan",
+       "Besancon", "Rouen", "La Rochelle", "Le Havre", "Nice")
+
+z <- asf_zoom(fond, 
+              places = v, 
+              r = 15000)
+
+fond_simply <- asf_simplify(fond)
 
 
+data <- readRDS("output/asf_0801/data_multi.rds")
 
+data$nb <- 1
+
+data_r <- asf_data(data, 
+                   tabl, 
+                   by = "IRISF_CODE", 
+                   maille = "IRISrD_CODE", 
+                   vars = c(12, 16),
+                   funs = c("median", "sum"))
+
+carte_f <- asf_fondata(f = fond_simply, d = data_r, by = "IRISrD_CODE")
+carte_z <- asf_fondata(z = z[[1]], d = data_r, by = "IRISrD_CODE")
+
+# Limites des com dans les zooms
+fond_line <- asf_borders(geom, by = "COMF_CODE")
+
+zl <- asf_zoom(fond_line, 
+               places = v, 
+               r = 15000, 
+               f_ref = fond)
+
+palette <- rev(asf_palette(pal = "rhubarbe", nb = 6))
+
+b <- quantile(carte_f$delta_annees, 
+              probs = c(0, 0.05, 0.25, 0.5, 0.75, 0.95, 1), 
+              na.rm = TRUE)
+
+# b <- c(min(carte_f$delta_annees, na.rm = TRUE), 
+#        2.6, 3.3, 3.6, 4, 4.5, 
+#        max(carte_f$delta_annees, na.rm = TRUE))
+
+
+# CARTE HEXAGONE COM
+mf_map(carte_f, 
+       border = NA)
+
+mf_map(carte_f,
+       var = c("nb", "delta_annees"),
+       type = "prop_choro",
+       breaks = b,
+       pal = palette,
+       inches = 0.2,
+       lwd = 0.1,
+       add = TRUE)
+
+
+# CARTE ZOOMS IRIS
+mf_map(carte_z, 
+       border = NA)
+
+mf_map(zl[[1]],
+       col = "#fff", 
+       lwd = 0.1,
+       add = TRUE)
+
+mf_map(carte_z,
+       var = c("nb", "delta_annees"),
+       type = "prop_choro",
+       breaks = b,
+       pal = palette,
+       inches = 0.05,
+       lwd = 0.1,
+       add = TRUE)
+
+mf_label(zl[[2]],
+         var = "label")
 
 
 
 # GRAPHIQUES ------------------------------------------------------------------
+data <- readRDS("output/asf_0801/data_multi.rds")
 tabl <- asf_mar(md = "com_xxxx", ma = "com_r2")
 
 # Clarification des noms
@@ -299,6 +377,94 @@ taav_labels <- c(
   "4" = "Aire ≥ 700 000 hab. (hors Paris)",
   "5" = "Aire de Paris"
 )
+
+
+# Repartition et delta_prixm² des multiventes dans les AAV
+x <- merge(data, tabl, by = "COMF_CODE", all.x = TRUE)
+x <- x[, c(3, 12, 14, 32, 34)]
+
+head(x)
+
+# b <- quantile(x$delta_eur_m2, 
+#               probs = c(0, 0.05, 0.25, 0.5, 0.75, 0.95, 1), 
+#               na.rm = TRUE)
+
+b <- c(min(x$delta_eur_m2, na.rm = TRUE),
+       0, 15, 100, 250, 800,
+       max(x$delta_eur_m2, na.rm = TRUE))
+
+
+labs <- c(
+  "min;0[",
+  "[0;15[",
+  "[15;100[",
+  "[100;250[",
+  "[250;800[",
+  "[800;max["
+)
+
+x$classe_delta <- cut(
+  x$delta_eur_m2,
+  breaks = b,
+  labels = labs,
+  include.lowest = TRUE,
+  right = FALSE
+)
+
+
+palette <- rev(asf_palette(pal = "rhubarbe", nb = 6))
+
+asf_plot_typo(x, 
+              vars = "classe_delta", 
+              typo = "TAAV2017", 
+              order.v = c(
+                "min;0[",
+                "[0;15[",
+                "[15;100[",
+                "[100;250[",
+                "[250;800[",
+                "[800;max["), 
+              eff = TRUE, pal = palette)
+
+asf_plot_typo(x, 
+              vars = "classe_delta", 
+              typo = "CATEAAV2020", 
+              order.v = c(
+                "min;0[",
+                "[0;15[",
+                "[15;100[",
+                "[100;250[",
+                "[250;800[",
+                "[800;max["), 
+              eff = TRUE, pal = palette)
+
+asf_plot_typo(x, 
+              vars = "classe_delta", 
+              typo = "TAAV2017", 
+              order.v = c(
+                "min;0[",
+                "[0;15[",
+                "[15;100[",
+                "[100;250[",
+                "[250;800[",
+                "[800;max["), 
+              pal = palette)
+
+asf_plot_typo(x, 
+              vars = "classe_delta", 
+              typo = "CATEAAV2020", 
+              order.v = c(
+                "min;0[",
+                "[0;15[",
+                "[15;100[",
+                "[100;250[",
+                "[250;800[",
+                "[800;max["), 
+              pal = palette)
+
+
+
+
 
 # Nombre de multiventes par type d'AAV
 x <- merge(data, tabl, by = "COMF_CODE", all.x = TRUE)
@@ -356,5 +522,3 @@ x$TAAV2017 <- taav_labels[as.character(x$TAAV2017)]
 x$CATEAAV2020 <- cateaav_labels[as.character(x$CATEAAV2020)]
 
 grid.table(x)
-
-
