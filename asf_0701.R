@@ -200,43 +200,106 @@ mf_map(dep,
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# CASD
+# CASD ------------------------------------------------------------------------
 # FIDELI 2022
-
 decile <- paste0("d", 1:9)
 revenus <- c(11839, 15204, 18023, 20404, 22713, 25305, 28384, 32591, 40498)
-
 f <- data.frame(
-  decile = decile, 
+  decile = decile,  
   rev_ann = revenus
 )
-
 f$rev_moi <- round(f$rev_ann / 12, 0)
 
-
-
 # FILOCOM 2022
-
 decile <- paste0("d", 1:9)
 revenus <- c(7285, 11331, 14519, 17323, 19893, 22778, 26518, 31769, 42029)
-
 g <- data.frame(
   decile = decile, 
   rev_ann = revenus
 )
-
 g$rev_moi <- round(g$rev_ann / 12, 0)
+
+
+# CARTO 1
+mar <- asf_mar(md = "iris_2023", ma = "iris_r2", geom = TRUE, dir = "input/mar/")
+
+tabl <- mar$tabl
+geom <- mar$geom
+
+fond <- asf_fond(geom, tabl, by = "IRISF_CODE", maille = "IRISrS_CODE")
+fond <- asf_drom(fond)
+fond <- asf_simplify(fond, keep = 0.5)
+
+
+x <- read.csv("C:/Users/Antoine/Desktop/casd/export/TREVPOP_export_18/donnees/export_ql_riche_secretise.csv")
+x <- x[, c(1:4)]
+
+class <- function(x) {
+  cut(x,
+      breaks = c(min(x, na.rm = TRUE), 0.5, 1, 2, max(x, na.rm = TRUE)),
+      labels = c("low-", "low", "middle", "high"),
+      include.lowest = TRUE)
+}
+
+x$v1_class <- class(x$ql1)
+x$v2_class <- class(x$ql2)
+
+x$v1_v2_class <- paste(x$v1_class, x$v2_class, sep = "_") 
+
+
+c <- merge(fond, x, by = "IRISrS_CODE", all.x = TRUE)
+
+palette <- c(
+  "low-_low-" =     "#f5f0e0", 
+  "low_low-" =      "#e0d6c4", 
+  "middle_low-" =   "#7dc4a3", 
+  "high_low-" =     "#00a183", 
+  
+  "low-_low" =      "#e0d6c4", 
+  "low_low" =       "#e0d6c4", 
+  "middle_low" =    "#7dc4a3", 
+  "high_low" =      "#00a183", 
+  
+  "low-_middle" =   "#f28d65", 
+  "low_middle" =    "#f28d65", 
+  "middle_middle" = "#a08a6e", 
+  "high_middle" =   "#007562", 
+  
+  "low-_high" =     "#dc0d15", 
+  "low_high" =      "#dc0d15", 
+  "middle_high" =   "#981108", 
+  "high_high" =     "#403638"
+)
+
+
+mf_map(c, "v1_v2_class", type = "typo", pal = palette, border = NA, 
+       val_order = c(
+         "low-_low-",
+         "low_low-",
+         "middle_low-",
+         "high_low-" ,
+         
+         "low-_low",
+         "low_low",
+         "middle_low",
+         "high_low",
+         
+         "low-_middle",
+         "low_middle",
+         "middle_middle",
+         "high_middle",
+         
+         "low-_high",
+         "low_high", 
+         "middle_high", 
+         "high_high"
+       ))
+
+
+
+
+
+
+
+
+
