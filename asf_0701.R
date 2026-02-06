@@ -201,26 +201,6 @@ mf_map(dep,
 
 
 # CASD ------------------------------------------------------------------------
-# FIDELI 2022
-decile <- paste0("d", 1:9)
-revenus <- c(11839, 15204, 18023, 20404, 22713, 25305, 28384, 32591, 40498)
-f <- data.frame(
-  decile = decile,  
-  rev_ann = revenus
-)
-f$rev_moi <- round(f$rev_ann / 12, 0)
-
-# FILOCOM 2022
-decile <- paste0("d", 1:9)
-revenus <- c(7285, 11331, 14519, 17323, 19893, 22778, 26518, 31769, 42029)
-g <- data.frame(
-  decile = decile, 
-  rev_ann = revenus
-)
-g$rev_moi <- round(g$rev_ann / 12, 0)
-
-
-# CARTO 1
 mar <- asf_mar(md = "iris_2023", ma = "iris_r2", geom = TRUE, dir = "input/mar/")
 
 tabl <- mar$tabl
@@ -231,7 +211,9 @@ fond <- asf_drom(fond)
 fond <- asf_simplify(fond, keep = 0.5)
 
 
-x <- read.csv("C:/Users/Antoine/Desktop/casd/export/TREVPOP_export_18/donnees/export_ql_riche_secretise.csv")
+
+# CARTO 2 ----
+x <- read.csv("input/asf_0701/export_ql_riche_secretise.csv")
 x <- x[, c(1:4)]
 
 class <- function(x) {
@@ -271,35 +253,179 @@ palette <- c(
   "high_high" =     "#403638"
 )
 
+mf_map(c, "v1_v2_class", type = "typo", pal = palette, border = NA, 
+       val_order = c("low-_low-", "low_low-", "middle_low-", "high_low-" ,
+                     "low-_low", "low_low", "middle_low", "high_low",
+                     "low-_middle", "low_middle", "middle_middle", "high_middle",
+                     "low-_high", "low_high", "middle_high", "high_high"))
+
+
+
+
+# CARTO 3 ----
+x <- read.csv("input/asf_0701/riches_2015_2022_c80100.csv")
+
+c <- merge(fond, x, by = "IRISrS_CODE", all.x = TRUE)
+
+
+# Variation
+mf_distr(c$X.2022..2015)
+pal <- c("#6071b5", "#8e9ed1", "#bccdeb", "#dfeaf8", "#feebdc", "#fbceb4", "#f28d65", "#dc0d15")
+
+mf_map(c, var = "X.2022..2015", type = "choro",
+       breaks = c(min(c$X.2022..2015, na.rm = TRUE),
+                  -6, -4, -2, 0, 2, 4, 6,
+                  max(c$X.2022..2015, na.rm = TRUE)),
+       pal = pal, border = NA)
+
+
+# Residus
+mf_distr(c$res_x.2015_y.2022)
+pal <- c("#6071b5", "#8e9ed1", "#bccdeb", "#dfeaf8", "#feebdc", "#fbceb4", "#f28d65", "#dc0d15")
+
+mf_map(c, var = "res_x.2015_y.2022", type = "choro",
+       breaks = c(min(c$res_x.2015_y.2022, na.rm = TRUE),
+                  -6, -3, -1.5, 0, 1.5, 3, 6,
+                  max(c$res_x.2015_y.2022, na.rm = TRUE)),
+       pal = pal, border = NA)
+
+
+# Quotients de localisation 
+class <- function(x) {
+  cut(x,
+      breaks = c(min(x, na.rm = TRUE), 0.5, 1, 1.5, max(x, na.rm = TRUE)),
+      labels = c("low-", "low", "middle", "high"),
+      include.lowest = TRUE)
+}
+
+c$ql_2015_class <- class(c$ql_2015)
+c$ql_2022_class <- class(c$ql_2022)
+
+c$v1_v2_class <- paste(c$ql_2015_class, c$ql_2022_class, sep = "_") 
+
+palette <- c(
+  "low-_low-" =     "#f5f0e0", 
+  "low_low-" =      "#e0d6c4", 
+  "middle_low-" =   "#7dc4a3", 
+  "high_low-" =     "#00a183", 
+  
+  "low-_low" =      "#e0d6c4", 
+  "low_low" =       "#e0d6c4", 
+  "middle_low" =    "#7dc4a3", 
+  "high_low" =      "#00a183", 
+  
+  "low-_middle" =   "#f28d65", 
+  "low_middle" =    "#f28d65", 
+  "middle_middle" = "#a08a6e", 
+  "high_middle" =   "#007562", 
+  
+  "low-_high" =     "#dc0d15", 
+  "low_high" =      "#dc0d15", 
+  "middle_high" =   "#981108", 
+  "high_high" =     "#403638"
+)
 
 mf_map(c, "v1_v2_class", type = "typo", pal = palette, border = NA, 
-       val_order = c(
-         "low-_low-",
-         "low_low-",
-         "middle_low-",
-         "high_low-" ,
-         
-         "low-_low",
-         "low_low",
-         "middle_low",
-         "high_low",
-         
-         "low-_middle",
-         "low_middle",
-         "middle_middle",
-         "high_middle",
-         
-         "low-_high",
-         "low_high", 
-         "middle_high", 
-         "high_high"
-       ))
+       val_order = c("low-_low-", "low_low-", "middle_low-", "high_low-" ,
+                     "low-_low", "low_low", "middle_low", "high_low",
+                     "low-_middle", "low_middle", "middle_middle", "high_middle",
+                     "low-_high", "low_high", "middle_high", "high_high"))
+
+# Typologie
+class_ql <- function(x) {
+  cut(x,
+      breaks = c(min(x, na.rm = TRUE), 0.5, 1, 1.5, max(x, na.rm = TRUE)),
+      labels = c("low-", "low", "middle", "high"),
+      include.lowest = TRUE)
+}
+
+class_var <- function(x) {
+  cut(x,
+      breaks = c(min(x, na.rm = TRUE), -2, 0, 2, max(x, na.rm = TRUE)),
+      labels = c("low-", "low", "middle", "high"),
+      include.lowest = TRUE)
+}
+
+c$typo_ql <- class_ql(c$ql_2015)
+c$typo_var <- class_var(c$X.2022..2015)
+
+c$typo_class <- paste(c$typo_ql, c$typo_var, sep = "_") 
+
+palette <- c(
+  "low-_low-" =     "#6e74b6", 
+  "low_low-" =      "#9aa2d2", 
+  "middle_low-" =   "#bdc5e6", 
+  "high_low-" =     "#7dc4a3", 
+  
+  "low-_low" =      "#9aa2d2", 
+  "low_low" =       "#9aa2d2", 
+  "middle_low" =    "#bdc5e6", 
+  "high_low" =      "#7dc4a3", 
+  
+  "low-_middle" =   "#f5f0e0", 
+  "low_middle" =    "#f5f0e0", 
+  "middle_middle" = "#e0d6c4", 
+  "high_middle" =   "#00a183", 
+  
+  "low-_high" =     "#f28d65", 
+  "low_high" =      "#f28d65", 
+  "middle_high" =   "#dc0d15", 
+  "high_high" =     "#403638"
+)
+
+mf_map(c, "typo_class", type = "typo", pal = palette, border = NA, 
+       val_order = c("low-_low-", "low_low-", "middle_low-", "high_low-" ,
+                     "low-_low", "low_low", "middle_low", "high_low",
+                     "low-_middle", "low_middle", "middle_middle", "high_middle",
+                     "low-_high", "low_high", "middle_high", "high_high"))
 
 
 
 
 
+class_ql <- function(x) {
+  cut(x,
+      breaks = c(min(x, na.rm = TRUE), 0.5, 1, 1.5, max(x, na.rm = TRUE)),
+      labels = c("low-", "low", "middle", "high"),
+      include.lowest = TRUE)
+}
 
+class_var <- function(x) {
+  cut(x,
+      breaks = c(min(x, na.rm = TRUE), -2, 0, 2, max(x, na.rm = TRUE)),
+      labels = c("low-", "low", "middle", "high"),
+      include.lowest = TRUE)
+}
 
+c$typo_ql <- class_ql(c$ql_2015)
+c$typo_var <- class_var(c$X.2022..2015)
 
+c$typo_class <- paste(c$typo_ql, c$typo_var, sep = "_") 
 
+palette <- c(
+  "low-_low-" =     "#6e74b6", 
+  "low_low-" =      "#9aa2d2", 
+  "middle_low-" =   "#bdc5e6", 
+  "high_low-" =     "#7dc4a3", 
+  
+  "low-_low" =      "#9aa2d2", 
+  "low_low" =       "#9aa2d2", 
+  "middle_low" =    "#bdc5e6", 
+  "high_low" =      "#7dc4a3", 
+  
+  "low-_middle" =   "#f5f0e0", 
+  "low_middle" =    "#f5f0e0", 
+  "middle_middle" = "#e0d6c4", 
+  "high_middle" =   "#00a183", 
+  
+  "low-_high" =     "#f28d65", 
+  "low_high" =      "#f28d65", 
+  "middle_high" =   "#dc0d15", 
+  "high_high" =     "#403638"
+)
+
+mf_map(c, "typo_class", type = "typo", pal = palette, border = NA, 
+       val_order = c("low-_low-", "low_low-", "middle_low-", "high_low-" ,
+                     "low-_low", "low_low", "middle_low", "high_low",
+                     "low-_middle", "low_middle", "middle_middle", "high_middle",
+                     "low-_high", "low_high", "middle_high", "high_high"))
