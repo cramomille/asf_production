@@ -63,6 +63,7 @@ fondata <- asf_fondata(fond_carte_simply, zoom, data[, -1], by = "id_tmp")
 
 # CREATION DE CARTES ----------------------------------------------------------
 dep <- asf_borders(fond_carte, by = "DEP", keep = 0.025)
+com <- asf_borders(zoom, by = "COMr2_CODE", keep = 0.1)
 
 # Definition d'une palette de couleurs
 pal <- c(
@@ -84,6 +85,7 @@ mf_map(fondata,
        border = NA)
 
 mf_map(dep, col = "#fff", add = TRUE)
+mf_map(com, col = "#fff", add = TRUE)
 
 mf_label(label,
          var = "label",
