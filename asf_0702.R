@@ -13,8 +13,8 @@ library(mapsf)
 # CASD ------------------------------------------------------------------------
 # Fond geographique
 mar <- asf_mar(
-  md = "com_xxxx", 
-  ma = "com_r2", 
+  md = "iris_xxxx", 
+  ma = "iris_r2", 
   geom = TRUE, 
   dir = "input/mar/"
 )
@@ -22,7 +22,7 @@ mar <- asf_mar(
 tabl <- mar$tabl
 geom <- mar$geom
 
-fond <- asf_fond(geom, tabl, by = "COMF_CODE", maille = "COMr2_CODE")
+fond <- asf_fond(geom, tabl, by = "IRISF_CODE", maille = "IRISrD_CODE")
 fond <- asf_drom(fond)
 fond_05 <- asf_simplify(fond, keep = 0.5)
 fond_09 <- asf_simplify(fond, keep = 0.9)
@@ -33,10 +33,10 @@ z <- asf_zoom(f = fond_09,
               nb_cols = 7, r = 20000)
 
 
-x <- st_read("input/asf_0702/pauvrete_fideli_2022.gpkg")
+x <- st_read("input/asf_0702/pauvre.gpkg")
 x <- st_drop_geometry(x)
 
-c <- asf_fondata(f = fond_05, z = z[[1]], d = x, by = "COMr2_CODE")
+c <- asf_fondata(f = fond_05, z = z[[1]], d = x, by = "IRISrD_CODE")
 
 sum(nchar(c$tx_menpauvre), na.rm = TRUE) - sum(nchar(x$tx_menpauvre), na.rm = TRUE)
 
@@ -49,15 +49,11 @@ pal <- c("#e94256",
          "#9d9d9c", 
          "#575756")
 
-brk <- quantile(c$tx_menpauvre, probs = c(0.05, 0.25, 0.5, 0.75, 0.95, 1), na.rm = TRUE)
-brk <- c(min(c$tx_menpauvre, na.rm = TRUE), 
-         5.3, 8.1, 11.2, 15.6, 22.6,
-         max(c$tx_menpauvre, na.rm = TRUE))
-
 mf_map(c, var = "tx_menpauvre", type = "choro", 
-       breaks = brk,
+       breaks = quantile(c$tx_menpauvre, probs = c(0, 0.05, 0.25, 0.5, 0.75, 0.95, 1), na.rm = TRUE),
        pal = rev(pal), border = NA)
 mf_label(z[[2]], var = "label")
+
 
 
 pal <- c("#009c79", 
@@ -67,13 +63,8 @@ pal <- c("#009c79",
          "#9d9d9c", 
          "#575756")
 
-brk <- quantile(c$interd, probs = c(0.05, 0.25, 0.5, 0.75, 0.95, 1), na.rm = TRUE)
-brk <- c(min(c$interd, na.rm = TRUE), 
-         2.4, 2.6, 2.8, 3.0, 3.8,
-         max(c$interd, na.rm = TRUE))
-
 mf_map(c, var = "interd", type = "choro", 
-       breaks = "q6",
+       breaks = quantile(c$interd, probs = c(0, 0.05, 0.25, 0.5, 0.75, 0.95, 1), na.rm = TRUE),
        pal = rev(pal), border = NA)
 mf_label(z[[2]], var = "label")
 
@@ -96,3 +87,10 @@ mf_map(c, "class", type = "typo", pal = pal, border = NA,
        val_order = c("low_low", "middle_low", "high_low",
                      "low_middle", "middle_middle", "high_middle",
                      "low_high", "middle_high", "high_high"))
+
+
+na <- c[is.na(c$tx_menpauvre) | c$tx_menpauvre == 0.0, ]
+mf_map(na)
+
+na <- c[is.na(c$interd), ]
+mf_map(na)
