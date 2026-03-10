@@ -345,7 +345,7 @@ c$ql_2022_class <- class(c$ql_2022)
 
 c$v1_v2_class <- paste(c$ql_2015_class, c$ql_2022_class, sep = "_") 
 
-palette <- c(
+pal <- c(
   "low-_low-" =     "#f5f0e0", 
   "low_low-" =      "#e0d6c4", 
   "middle_low-" =   "#7dc4a3", 
@@ -367,7 +367,10 @@ palette <- c(
   "high_high" =     "#403638"
 )
 
-mf_map(c, "v1_v2_class", type = "typo", pal = palette, border = NA, 
+mf_map(c, "v1_v2_class", 
+       type = "typo", 
+       pal = pal, 
+       border = NA, 
        val_order = c("low-_low-", "low_low-", "middle_low-", "high_low-" ,
                      "low-_low", "low_low", "middle_low", "high_low",
                      "low-_middle", "low_middle", "middle_middle", "high_middle",
@@ -381,44 +384,51 @@ mf_distr(c$X.2022..2015)
 quantile(c$ql_2015, probs = c(1/3, 2/3), na.rm = TRUE)
 quantile(c$X.2022..2015, probs = c(1/3, 2/3), na.rm = TRUE)
 
-
-
 class_ql <- function(x) {
   cut(x,
       breaks = c(min(x, na.rm = TRUE), 0.8, 1.2, max(x, na.rm = TRUE)),
-      labels = c("low", "middle", "high"),
+      labels = c("l", "m", "h"),
       include.lowest = TRUE)
 }
 
 class_var <- function(x) {
   cut(x,
       breaks = c(min(x, na.rm = TRUE), -2, 2, max(x, na.rm = TRUE)),
-      labels = c("low", "middle", "high"),
+      labels = c("l", "m", "h"),
       include.lowest = TRUE)
 }
 
 c$typo_ql <- class_ql(c$ql_2015)
 c$typo_var <- class_var(c$X.2022..2015)
 
-c$typo_class <- paste(c$typo_ql, c$typo_var, sep = "_") 
+c$typo_class <- paste0(c$typo_ql, c$typo_var) 
 
-palette <- c(
-  "low_low" =       "#6bbfa3", 
-  "middle_low" =    "#cabdb1", 
-  "high_low" =      "#f5b3bd", 
+pal <- c(
+  "ll" = "#6bbfa3", 
+  "ml" = "#cabdb1", 
+  "hl" = "#f5b3bd", 
   
-  "low_middle" =    "#c1deba", 
-  "middle_middle" = "#f3dece", 
-  "high_middle" =   "#ed6c77", 
+  "lm" = "#c1deba", 
+  "mm" = "#f3dece", 
+  "hm" = "#ed6c77", 
   
-  "low_high" =      "#ffda6f", 
-  "middle_high" =   "#f9b122", 
-  "high_high" =     "#c14352"
+  "lh" = "#ffda6f", 
+  "mh" = "#f9b122", 
+  "hh" = "#c14352"
 )
 
-mf_map(c, "typo_class", type = "typo", pal = palette, border = NA, 
-       val_order = c("low_low", "middle_low", "high_low",
-                     "low_middle", "middle_middle", "high_middle",
-                     "low_high", "middle_high", "high_high"))
+mf_map(c, "typo_class", 
+       type = "typo", 
+       pal = pal, 
+       border = NA, 
+       val_order = c("ll", "ml", "hl", "lm", "mm", "hm", "lh", "mh", "hh"))
 
+
+# Calcul du taux d'evolution et caracterisation des classes de la typo
+c$te <- ((c$c80_100_2022 - c$c80_100_2015) / c$c80_100_2015) * 100
+
+d <- c[c$typo_class == "lh", ]
+
+mf_distr(d$te)
+quantile(d$te, probs = c(seq(0, 1, by = 0.1)), na.rm = TRUE)
 
