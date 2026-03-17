@@ -255,50 +255,49 @@ mf_label(z[[2]], var = "label")
 
 
 # CARTO 2 ----
-x <- read.csv("input/asf_0701/riches_2022_secret.csv")
-x <- x[, c("IRISrD_CODE", "ql1", "ql2")]
+x <- readRDS("input/asf_0701/riche_ql_secret.rds")
 
 class <- function(x) {
   cut(x,
-      breaks = c(min(x, na.rm = TRUE), 0.5, 1, 2, max(x, na.rm = TRUE)),
-      labels = c("low-", "low", "middle", "high"),
+      breaks = c(min(x, na.rm = TRUE), 0.6, 1, 1.5, max(x, na.rm = TRUE)),
+      labels = c("j", "l", "m", "h"),
       include.lowest = TRUE)
 }
 
-x$v1_class <- class(x$ql1)
-x$v2_class <- class(x$ql2)
+x$v1_class <- class(x$ql_c80_90)
+x$v2_class <- class(x$ql_c90_100)
 
-x$v1_v2_class <- paste(x$v1_class, x$v2_class, sep = "_")
+x$v1_v2_class <- paste0(x$v1_class, x$v2_class)
 
 c <- asf_fondata(f = fond, z = z[[1]], d = x, by = "IRISrD_CODE")
 
 palette <- c(
-  "low-_low-" =     "#e9e5ec", 
-  "low_low-" =      "#ded8de", 
-  "middle_low-" =   "#f5b3bd", 
-  "high_low-" =     "#ed6c77", 
+  "jj" = "#e9e5ec", 
+  "lj" = "#ded8de", 
+  "mj" = "#f5b3bd", 
+  "hj" = "#ed6c77", 
   
-  "low-_low" =      "#ded8de", 
-  "low_low" =       "#ded8de", 
-  "middle_low" =    "#f5b3bd", 
-  "high_low" =      "#ed6c77", 
+  "jl" = "#ded8de", 
+  "ll" = "#ded8de", 
+  "ml" = "#f5b3bd", 
+  "hl" = "#ed6c77", 
   
-  "low-_middle" =   "#a5d7d5", 
-  "low_middle" =    "#a5d7d5", 
-  "middle_middle" = "#b3a6af", 
-  "high_middle" =   "#c2435e", 
+  "jm" = "#a5d7d5", 
+  "lm" = "#a5d7d5", 
+  "mm" = "#b3a6af", 
+  "hm" = "#c2435e", 
   
-  "low-_high" =     "#5abeb9", 
-  "low_high" =      "#5abeb9", 
-  "middle_high" =   "#00889d", 
-  "high_high" =     "#564770"
+  "jh" = "#5abeb9", 
+  "lh" = "#5abeb9", 
+  "mh" = "#00889d", 
+  "hh" = "#564770"
 )
 
 mf_map(c, "v1_v2_class", type = "typo", pal = palette, border = NA, 
-       val_order = c("low-_low-", "low_low-", "middle_low-", "high_low-" ,
-                     "low-_low", "low_low", "middle_low", "high_low",
-                     "low-_middle", "low_middle", "middle_middle", "high_middle",
-                     "low-_high", "low_high", "middle_high", "high_high"))
+       val_order = c("jj", "lj", "mj", "hj",
+                     "jl", "ll", "ml", "hl",
+                     "jm", "lm", "mm", "hm",
+                     "jh", "lh", "mh", "hh"))
 
 
 # CARTO 3 ----
