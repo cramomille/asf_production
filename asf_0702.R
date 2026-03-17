@@ -22,9 +22,10 @@ mar <- asf_mar(
 tabl <- mar$tabl
 geom <- mar$geom
 
-fond <- asf_fond(geom, tabl, by = "IRISF_CODE", maille = "IRISrD_CODE")
-fond <- asf_drom(fond)
+fond <- asf_fond(geom, tabl, by = "IRISF_CODE", maille = "IRISrD_CODE", keep = "IRISrD_LIB")
+# fond <- asf_drom(fond)
 
+fond_01 <- asf_simplify(fond, keep = 0.1)
 fond_05 <- asf_simplify(fond, keep = 0.5)
 fond_09 <- asf_simplify(fond, keep = 0.9)
 
@@ -37,13 +38,10 @@ x <- st_read("input/asf_0702/pauvre.gpkg")
 x <- st_drop_geometry(x)
 c <- asf_fondata(f = fond_01, d = x, by = "IRISrD_CODE")
 
-
 # c <- st_transform(c, crs = 4326)
-# 
 # sum(nchar(c$tx_menpauvre), na.rm = TRUE) - sum(nchar(x$tx_menpauvre), na.rm = TRUE)
 # st_write(c, "planche_0702_01.geojson")
-# 
-# mf_map(c)
+
 
 
 
@@ -90,6 +88,6 @@ pal <- c(
 )
 
 mf_map(c, "class", type = "typo", pal = pal, border = NA, 
-       val_order = c("low_low", "middle_low", "high_low",
-                     "low_middle", "middle_middle", "high_middle",
+       val_order = c("low_low", "middle_low", "high_low", 
+                     "low_middle", "middle_middle", "high_middle", 
                      "low_high", "middle_high", "high_high"))
