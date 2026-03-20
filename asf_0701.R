@@ -301,87 +301,45 @@ mf_map(c, "v1_v2_class", type = "typo", pal = palette, border = NA,
 
 
 # CARTO 3 ----
-x <- read.csv("input/asf_0701/riches_2015_2022_c80100.csv")
+x <- readRDS("input/asf_0701/riche_ql_2015_secret.rds")
+y <- readRDS("input/asf_0701/riches_2015_2022_c80100.rds")
+
+x <- merge(x[, c(1, 2, 16)], y[, c(1, 6)], by = "IRISrD_CODE", all = TRUE)
 
 c <- asf_fondata(f = fond_05, z = z[[1]], d = x, by = "IRISrD_CODE")
 
-sum(is.na(c$X.2022..2015))
-sum(is.na(c$ql_2015))
+sum(is.na(c$ql_c80_100))
+sum(is.na(c$diff_2022_2015))
+sum(is.na(c$base_2015))
 
 
 # Variation ----
-mf_distr(c$X.2022..2015)
+mf_distr(c$diff_2022_2015)
 pal <- c("#6071b5", "#8e9ed1", "#bccdeb", "#dfeaf8", "#feebdc", "#fbceb4", "#f28d65", "#dc0d15")
 
-mf_map(c, var = "X.2022..2015", type = "choro",
-       breaks = c(min(c$X.2022..2015, na.rm = TRUE),
+mf_map(c, var = "diff_2022_2015", type = "choro",
+       breaks = c(min(c$diff_2022_2015, na.rm = TRUE),
                   -6, -4, -2, 0, 2, 4, 6,
-                  max(c$X.2022..2015, na.rm = TRUE)),
+                  max(c$diff_2022_2015, na.rm = TRUE)),
        pal = pal, border = NA)
 
 
-# Residus ----
-mf_distr(c$res_x.2015_y.2022)
+mf_distr(c$base_2015)
 pal <- c("#6071b5", "#8e9ed1", "#bccdeb", "#dfeaf8", "#feebdc", "#fbceb4", "#f28d65", "#dc0d15")
 
-mf_map(c, var = "res_x.2015_y.2022", type = "choro",
-       breaks = c(min(c$res_x.2015_y.2022, na.rm = TRUE),
-                  -6, -3, -1.5, 0, 1.5, 3, 6,
-                  max(c$res_x.2015_y.2022, na.rm = TRUE)),
+mf_map(c, var = "base_2015", type = "choro",
+       breaks = c(min(c$base_2015, na.rm = TRUE),
+                  50, 75, 90, 100, 110, 125, 150,
+                  max(c$base_2015, na.rm = TRUE)),
        pal = pal, border = NA)
-
-
-# Quotients de localisation ----
-class <- function(x) {
-  cut(x,
-      breaks = c(min(x, na.rm = TRUE), 0.5, 1, 2, max(x, na.rm = TRUE)),
-      labels = c("low-", "low", "middle", "high"),
-      include.lowest = TRUE)
-}
-
-c$ql_2015_class <- class(c$ql_2015)
-c$ql_2022_class <- class(c$ql_2022)
-
-c$v1_v2_class <- paste(c$ql_2015_class, c$ql_2022_class, sep = "_") 
-
-pal <- c(
-  "low-_low-" =     "#f5f0e0", 
-  "low_low-" =      "#e0d6c4", 
-  "middle_low-" =   "#7dc4a3", 
-  "high_low-" =     "#00a183", 
-  
-  "low-_low" =      "#e0d6c4", 
-  "low_low" =       "#e0d6c4", 
-  "middle_low" =    "#7dc4a3", 
-  "high_low" =      "#00a183", 
-  
-  "low-_middle" =   "#f28d65", 
-  "low_middle" =    "#f28d65", 
-  "middle_middle" = "#a08a6e", 
-  "high_middle" =   "#007562", 
-  
-  "low-_high" =     "#dc0d15", 
-  "low_high" =      "#dc0d15", 
-  "middle_high" =   "#981108", 
-  "high_high" =     "#403638"
-)
-
-mf_map(c, "v1_v2_class", 
-       type = "typo", 
-       pal = pal, 
-       border = NA, 
-       val_order = c("low-_low-", "low_low-", "middle_low-", "high_low-" ,
-                     "low-_low", "low_low", "middle_low", "high_low",
-                     "low-_middle", "low_middle", "middle_middle", "high_middle",
-                     "low-_high", "low_high", "middle_high", "high_high"))
 
 
 # Typologie ----
-mf_distr(c$ql_2015)
-mf_distr(c$X.2022..2015)
+mf_distr(c$ql_c80_100)
+mf_distr(c$diff_2022_2015)
 
-quantile(c$ql_2015, probs = c(1/3, 2/3), na.rm = TRUE)
-quantile(c$X.2022..2015, probs = c(1/3, 2/3), na.rm = TRUE)
+quantile(c$ql_c80_100, probs = c(1/3, 2/3), na.rm = TRUE)
+quantile(c$diff_2022_2015, probs = c(1/3, 2/3), na.rm = TRUE)
 
 class_ql <- function(x) {
   cut(x,
@@ -397,8 +355,8 @@ class_var <- function(x) {
       include.lowest = TRUE)
 }
 
-c$typo_ql <- class_ql(c$ql_2015)
-c$typo_var <- class_var(c$X.2022..2015)
+c$typo_ql <- class_ql(c$ql_c80_100)
+c$typo_var <- class_var(c$diff_2022_2015)
 
 c$typo_class <- paste0(c$typo_ql, c$typo_var) 
 
@@ -423,11 +381,36 @@ mf_map(c, "typo_class",
        val_order = c("ll", "ml", "hl", "lm", "mm", "hm", "lh", "mh", "hh"))
 
 
-# Calcul du taux d'evolution et caracterisation des classes de la typo
-c$te <- ((c$c80_100_2022 - c$c80_100_2015) / c$c80_100_2015) * 100
 
-d <- c[c$typo_class == "lh", ]
 
-mf_distr(d$te)
-quantile(d$te, probs = c(seq(0, 1, by = 0.1)), na.rm = TRUE)
+####
+
+tmp <- merge(c, tabl[!duplicated(tabl$IRISrD_CODE), c(3, 16, 18)], by = "IRISrD_CODE", all.x = TRUE)
+tmp <- tmp[!(tmp$typo_class %in% c("lNA", "NANA")), ]
+
+asf_plot_vars(d = tmp, vars = "TOT", typo = c("CATEAAV2020", "typo_class"), 
+              order.t = c("ll", "lm", "ml", "mm", "lh", "mh", "hl", "hm", "hh"), 
+              pal = pal, eff = FALSE)
+
+asf_plot_vars(d = tmp, vars = "TOT", typo = c("TAAV2017", "typo_class"), 
+              order.t = c("ll", "lm", "ml", "mm", "lh", "mh", "hl", "hm", "hh"), 
+              pal = pal, eff = FALSE)
+
+
+
+
+asf_plot_typo(d = tmp, vars = "typo_class", typo = c("CATEAAV2020"), 
+              order.v = c("ll", "lm", "ml", "mm", "lh", "mh", "hl", "hm", "hh"),
+              pal = pal)
+
+asf_plot_typo(d = tmp, vars = "typo_class", typo = c("TAAV2017"), 
+              order.v = c("ll", "lm", "ml", "mm", "lh", "mh", "hl", "hm", "hh"),
+              pal = pal)
+
+asf_plot_typo(d = tmp, vars = "typo_class", typo = c("TAAV2017", "CATEAAV2020"), 
+              order.v = c("ll", "lm", "ml", "mm", "lh", "mh", "hl", "hm", "hh"),
+              pal = pal)
+asf_plot_typo(d = tmp, vars = "typo_class", typo = c("TAAV2017", "CATEAAV2020"), 
+              order.v = c("ll", "lm", "ml", "mm", "lh", "mh", "hl", "hm", "hh"),
+              pal = pal, eff = TRUE)
 
