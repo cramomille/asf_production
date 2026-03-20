@@ -224,12 +224,12 @@ z <- asf_zoom(f = fond_09,
 
 
 # CARTO 1 ----
-x <- read.csv("input/asf_0701/riches_2022_secret.csv")
-x <- x[, c("IRISrD_CODE", "class_tx_c80100")]
+x <- readRDS("input/asf_0701/tx_80100.rds")
 
 c <- asf_fondata(f = fond_05, z = z[[1]], d = x, by = "IRISrD_CODE")
 
-sum(nchar(c$class_tx_c80100), na.rm = TRUE) - sum(nchar(x$class_tx_c80100), na.rm = TRUE)
+sum(nchar(as.character(c$class_tx_c80100_2022)), na.rm = TRUE) - 
+  sum(nchar(as.character(x$class_tx_c80100_2022)), na.rm = TRUE)
 
 palette <- c("#878787", 
              "#a8a8a7", 
@@ -242,9 +242,9 @@ palette <- c("#878787",
              "#eb5e50", 
              "#d72738")
 
-mf_map(c, var = "class_tx_c80100", type = "typo", pal = palette, border = NA, 
+mf_map(c, var = "class_tx_c80100_2022", type = "typo", pal = palette, border = NA, 
        val_order = c("0-5", "5-10", "10-15", "15-20", "20-25", "25-30", "30-35", 
-                     "35-40", "40-60", "60-77.22"))
+                     "35-40", "40-60", "60-77.322"))
 
 zoom <- z[[1]]
 zoom$COM <- substr(zoom$IRISrD_CODE, 1, 5)
@@ -255,7 +255,7 @@ mf_label(z[[2]], var = "label")
 
 
 # CARTO 2 ----
-x <- readRDS("input/asf_0701/riche_ql_secret.rds")
+x <- readRDS("input/asf_0701/riche_ql_2022_secret.rds")
 
 class <- function(x) {
   cut(x,
@@ -269,7 +269,7 @@ x$v2_class <- class(x$ql_c90_100)
 
 x$v1_v2_class <- paste0(x$v1_class, x$v2_class)
 
-c <- asf_fondata(f = fond, z = z[[1]], d = x, by = "IRISrD_CODE")
+c <- asf_fondata(f = fond_05, z = z[[1]], d = x, by = "IRISrD_CODE")
 
 palette <- c(
   "jj" = "#e9e5ec", 
@@ -303,7 +303,7 @@ mf_map(c, "v1_v2_class", type = "typo", pal = palette, border = NA,
 # CARTO 3 ----
 x <- read.csv("input/asf_0701/riches_2015_2022_c80100.csv")
 
-c <- asf_fondata(f = fond, z = z[[1]], d = x, by = "IRISrD_CODE")
+c <- asf_fondata(f = fond_05, z = z[[1]], d = x, by = "IRISrD_CODE")
 
 sum(is.na(c$X.2022..2015))
 sum(is.na(c$ql_2015))
