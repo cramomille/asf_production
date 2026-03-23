@@ -388,9 +388,14 @@ mf_map(c, "typo_class",
 tmp <- merge(c, tabl[!duplicated(tabl$IRISrD_CODE), c(3, 16, 18)], by = "IRISrD_CODE", all.x = TRUE)
 tmp <- tmp[!(tmp$typo_class %in% c("lNA", "NANA")), ]
 
+# Les menages
+asf_plot_vars(d = tmp, vars = "TOT", typo = "typo_class", 
+              order.t = c("ll", "lm", "ml", "mm", "lh", "mh", "hl", "hm", "hh"), 
+              pal = pal, eff = TRUE)
+
 asf_plot_vars(d = tmp, vars = "TOT", typo = c("CATEAAV2020", "typo_class"), 
               order.t = c("ll", "lm", "ml", "mm", "lh", "mh", "hl", "hm", "hh"), 
-              pal = pal, eff = FALSE)
+              pal = pal, eff = TRUE)
 
 asf_plot_vars(d = tmp, vars = "TOT", typo = c("TAAV2017", "typo_class"), 
               order.t = c("ll", "lm", "ml", "mm", "lh", "mh", "hl", "hm", "hh"), 
@@ -398,7 +403,7 @@ asf_plot_vars(d = tmp, vars = "TOT", typo = c("TAAV2017", "typo_class"),
 
 
 
-
+# Les IRIS
 asf_plot_typo(d = tmp, vars = "typo_class", typo = c("CATEAAV2020"), 
               order.v = c("ll", "lm", "ml", "mm", "lh", "mh", "hl", "hm", "hh"),
               pal = pal)
