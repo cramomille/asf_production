@@ -1,6 +1,6 @@
 
 #                                               ASF - SCRIPT DE LA PLANCHE 0801
-#                                  L'EVOLUTION DES PRIX DE VENTE D'UN MEME BIEN
+#                                                PATRIMONIALISATION DU LOGEMENT
 #
 #                                                                antoine beroud
 #                                                                renaud le goix
