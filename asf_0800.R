@@ -1,6 +1,6 @@
 
 #                                               ASF - SCRIPT DE LA PLANCHE 0800
-#                                         INDICE D'ABORDABILITE DE L'IMMOBILIER
+#                                                      ABORDABILITE DU LOGEMENT
 #
 #                                                                antoine beroud
 #                                                                renaud le goix
