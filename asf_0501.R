@@ -1,6 +1,6 @@
 
 #                                               ASF - SCRIPT DE LA PLANCHE 0501 
-#                                                             TYPOLOGIE DES CSP
+#                                                TYPOLOGIE DES CSP EN 42 POSTES
 #
 #                                                                antoine beroud
 #                                                                  jean riviere
