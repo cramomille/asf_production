@@ -1,6 +1,6 @@
 
 #                                               ASF - SCRIPT DE LA PLANCHE 0407                                     
-#                                   REPARTITION DES PERSONNES NEES DANS UN DROM
+#                                                    GEOGRAPHIE DES DROMIEN.NES
 #
 #                                                                antoine beroud
 #                                                                     mars 2026
