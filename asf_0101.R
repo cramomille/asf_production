@@ -1,6 +1,6 @@
 
 #                                               ASF - SCRIPT DE LA PLANCHE 0201
-#                                               TYPOLOGIE SUR L'AGE DES MENAGES
+#                               TYPOLOGIE SOCIODEMOGRAPHIQUE DES TRANCHES D'AGE
 #
 #                                                                antoine beroud
 #                                                                  jean riviere
