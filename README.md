@@ -19,4 +19,4 @@ realisation de plusieurs planches de l'Atlas social de France
 - asf_1200 : Typologie des votes lors des presidentielles de 2022
 
 
-Les tableaux de données qui ont servi à faire certaines cartes de l'Atlas ont été déposés sur un dépôt Zenodo disponible à partir de ce DOI : 10.5281/zenodo.19349642
+Les tableaux de données qui ont servi à faire certaines cartes de l'Atlas ont été déposés sur un dépôt Zenodo disponible à partir de ce lien : https://zenodo.org/records/19349642
