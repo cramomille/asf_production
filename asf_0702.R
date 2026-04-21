@@ -93,7 +93,7 @@ mf_label(z[[2]], var = "label")
 
 
 c <- c[, c(1, 2, 3, 5)]
-d <- c[c$tx_menpauvre < median(c$tx_menpauvre, na.rm = TRUE), ]
+d <- c[c$tx_menpauvre <= median(c$tx_menpauvre, na.rm = TRUE), ]
 e <- c[c$tx_menpauvre > median(c$tx_menpauvre, na.rm = TRUE), ]
 
 class_1 <- function(x) {
