@@ -52,7 +52,7 @@ pal <- c("#ea5289",
          "#95a6b1")
 
 mf_map(c, var = "tx_menpauvre", type = "choro", 
-       breaks = quantile(c$tx_menpauvre, probs = c(0, 0.16, 0.33, 0.5, 0.66, 0.83, 1), na.rm = TRUE),
+       breaks = quantile(c$tx_menpauvre, probs = c(0, 1/6, 2/6, 3/6, 4/6, 5/6, 1), na.rm = TRUE),
        pal = rev(pal), border = NA)
 mf_label(z[[2]], var = "label")
 
@@ -66,7 +66,7 @@ pal <- c("#f59c00",
          "#95a6b1")
 
 mf_map(c, var = "interd", type = "choro", 
-       breaks = quantile(c$interd, probs = c(0, 0.16, 0.33, 0.5, 0.66, 0.83, 1), na.rm = TRUE),
+       breaks = quantile(c$interd, probs = c(0, 1/6, 2/6, 3/6, 4/6, 5/6, 1), na.rm = TRUE),
        pal = rev(pal), border = NA)
 mf_label(z[[2]], var = "label")
 
@@ -93,27 +93,28 @@ mf_label(z[[2]], var = "label")
 
 
 c <- c[, c(1, 2, 3, 5)]
-c <- c[c$tx_menpauvre > median(c$tx_menpauvre, na.rm = TRUE), ]
+d <- c[c$tx_menpauvre < median(c$tx_menpauvre, na.rm = TRUE), ]
+e <- c[c$tx_menpauvre > median(c$tx_menpauvre, na.rm = TRUE), ]
 
 class_1 <- function(x) {
   cut(x,
-      breaks = c(min(x, na.rm = TRUE), 16.7, 22.4 , max(x, na.rm = TRUE)),
+      breaks = quantile(x, probs = c(0, 1/3, 2/3, 1), na.rm = TRUE),
       labels = c("l", "m", "h"),
       include.lowest = TRUE)
 }
 
 class_2 <- function(x) {
   cut(x,
-      breaks = c(min(x, na.rm = TRUE), 2.97, 3.21, 3.77, max(x, na.rm = TRUE)),
+      breaks = quantile(x, probs = c(0, 3/6, 4/6, 5/6, 1), na.rm = TRUE),
       labels = c("s", "l", "m", "h"),
       include.lowest = TRUE)
 }
 
 
-c$typo_pauvr <- class_1(c$tx_menpauvre)
-c$typo_inter <- class_2(c$interd)
+e$typo_pauvr <- class_1(e$tx_menpauvre)
+e$typo_inter <- class_2(e$interd)
 
-c$typo_class <- paste0(c$typo_inter, c$typo_pauvr) 
+e$typo_class <- paste0(e$typo_inter, e$typo_pauvr) 
 
 pal <- c(
   "sl" = "#feebdc",
@@ -133,36 +134,17 @@ pal <- c(
   "hh" = "#a6393a"
 )
 
-# pal <- c(
-#   "sl" = "#fce5f1",
-#   "sm" = "#f7bfd9",
-#   "sh" = "#f088b6",
-#   
-#   "ll" = "#feebdc", 
-#   "ml" = "#f8b999", 
-#   "hl" = "#ed6b6a", 
-#   
-#   "lm" = "#fed27a", 
-#   "mm" = "#f07f3c", 
-#   "hm" = "#e84250", 
-#   
-#   "lh" = "#f8ab00", 
-#   "mh" = "#ca581a", 
-#   "hh" = "#a42523"
-# )
+mf_map(d, "tx_menpauvre", 
+       type = "choro",
+       breaks = quantile(d$tx_menpauvre, probs = c(0, 1/3, 2/3, 1), na.rm = TRUE),
+       pal = c("#95a6b1", "#b7c6cf", "#dae0e3"),
+       border = NA,
+       leg_pos = "topleft")
 
-mf_map(c, "typo_class", 
+mf_map(e, "typo_class", 
        type = "typo", 
        pal = pal, 
-       border = NA, leg_pos = "topright",
-       val_order = c("sl", "sm", "sh", "ll", "lm", "lh", "ml", "mm", "mh", "hl", "hm", "hh"), 
+       border = NA, 
+       leg_pos = "topright",
+       val_order = c("sl", "sm", "sh", "ll", "lm", "lh", "ml", "mm", "mh", "hl", "hm", "hh"),
        add = TRUE)
-
-
-
-y <- asf_fondata(f = fond_01, d = x, z = z[[1]], by = "IRISrD_CODE")
-y <- y[, c(1, 2, 3, 5)]
-c <- st_drop_geometry(c[, c(1, 6, 7, 8)])
-e <- merge(y, c, by = "IRISrD_CODE", all.x = TRUE)
-
-st_write(e, "pauvrete.gpkg")
