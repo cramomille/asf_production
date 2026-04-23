@@ -92,20 +92,19 @@ mf_label(z[[2]], var = "label")
 
 
 
-c <- c[, c(1, 2, 3, 5)]
 d <- c[c$tx_menpauvre <= median(c$tx_menpauvre, na.rm = TRUE), ]
 e <- c[c$tx_menpauvre > median(c$tx_menpauvre, na.rm = TRUE), ]
 
 class_1 <- function(x) {
   cut(x,
-      breaks = quantile(x, probs = c(0, 1/3, 2/3, 1), na.rm = TRUE),
+      breaks = c(min(x, na.rm = TRUE), 16.8, 22.6, max(x, na.rm = TRUE)),
       labels = c("l", "m", "h"),
       include.lowest = TRUE)
 }
 
 class_2 <- function(x) {
   cut(x,
-      breaks = quantile(x, probs = c(0, 3/6, 4/6, 5/6, 1), na.rm = TRUE),
+      breaks = c(min(x, na.rm = TRUE), 2.967, 3.225, 3.786, max(x, na.rm = TRUE)),
       labels = c("s", "l", "m", "h"),
       include.lowest = TRUE)
 }
