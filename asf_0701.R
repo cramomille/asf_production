@@ -403,12 +403,3 @@ asf_plot_typo(d = tmp, vars = "typo_class", typo = c("TAAV2017", "CATEAAV2020"),
 asf_plot_typo(d = tmp, vars = "typo_class", typo = c("TAAV2017", "CATEAAV2020"), 
               order.v = c("ll", "lm", "ml", "mm", "lh", "mh", "hl", "hm", "hh"),
               pal = pal, eff = TRUE)
-
-
-
-# STATISTIQUES ----
-
-
-
-
-
