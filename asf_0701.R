@@ -24,7 +24,7 @@ iris <- iris[!grepl("^96|^97|^98|^N|^P", iris$IRISF_CODE), ]
 fond <- asf_fond(iris, 
                  tabl, 
                  by = "COMF_CODE", 
-                 maille = "COMR2_CODE",
+                 maille = "COMr2_CODE",
                  keep = "DEP")
 
 z <- asf_zoom(fond,
@@ -41,7 +41,7 @@ dep <- asf_borders(fond, by = "DEP", keep = 0.1)
 fondata <- asf_fondata(f = fond, 
                        z = zoom,
                        d = data, 
-                       by.x = "COMR2_CODE", by.y = "comar")
+                       by.x = "COMr2_CODE", by.y = "comar")
 
 
 # TRAITEMENTS -----------------------------------------------------------------
@@ -114,7 +114,7 @@ x$Y <- x$d5_2022
 x$Y <- x$d9_2022 / x$d5_2022
 
 Moran <- x[, c(1,17)]
-Moran$COMR2_CODE <- substr(Moran$COMR2_CODE, 1, 5)
+Moran$COMr2_CODE <- substr(Moran$COMr2_CODE, 1, 5)
 names(Moran) <- c("code", "Y", "geometry")
 row.names(Moran) <- Moran$code
 
@@ -310,7 +310,6 @@ c <- asf_fondata(f = fond_05, z = z[[1]], d = x, by = "IRISrD_CODE")
 
 sum(is.na(c$ql_c80_100))
 sum(is.na(c$diff_2022_2015))
-sum(is.na(c$base_2015))
 
 
 # Variation ----
@@ -321,16 +320,6 @@ mf_map(c, var = "diff_2022_2015", type = "choro",
        breaks = c(min(c$diff_2022_2015, na.rm = TRUE),
                   -6, -4, -2, 0, 2, 4, 6,
                   max(c$diff_2022_2015, na.rm = TRUE)),
-       pal = pal, border = NA)
-
-
-mf_distr(c$base_2015)
-pal <- c("#6071b5", "#8e9ed1", "#bccdeb", "#dfeaf8", "#feebdc", "#fbceb4", "#f28d65", "#dc0d15")
-
-mf_map(c, var = "base_2015", type = "choro",
-       breaks = c(min(c$base_2015, na.rm = TRUE),
-                  50, 75, 90, 100, 110, 125, 150,
-                  max(c$base_2015, na.rm = TRUE)),
        pal = pal, border = NA)
 
 
@@ -381,9 +370,7 @@ mf_map(c, "typo_class",
        val_order = c("ll", "ml", "hl", "lm", "mm", "hm", "lh", "mh", "hh"))
 
 
-
-
-####
+# Repartition ----
 
 tmp <- merge(c, tabl[!duplicated(tabl$IRISrD_CODE), c(3, 16, 18)], by = "IRISrD_CODE", all.x = TRUE)
 tmp <- tmp[!(tmp$typo_class %in% c("lNA", "NANA")), ]
@@ -401,8 +388,6 @@ asf_plot_vars(d = tmp, vars = "TOT", typo = c("TAAV2017", "typo_class"),
               order.t = c("ll", "lm", "ml", "mm", "lh", "mh", "hl", "hm", "hh"), 
               pal = pal, eff = FALSE)
 
-
-
 # Les IRIS
 asf_plot_typo(d = tmp, vars = "typo_class", typo = c("CATEAAV2020"), 
               order.v = c("ll", "lm", "ml", "mm", "lh", "mh", "hl", "hm", "hh"),
@@ -418,4 +403,12 @@ asf_plot_typo(d = tmp, vars = "typo_class", typo = c("TAAV2017", "CATEAAV2020"),
 asf_plot_typo(d = tmp, vars = "typo_class", typo = c("TAAV2017", "CATEAAV2020"), 
               order.v = c("ll", "lm", "ml", "mm", "lh", "mh", "hl", "hm", "hh"),
               pal = pal, eff = TRUE)
+
+
+
+# STATISTIQUES ----
+
+
+
+
 
