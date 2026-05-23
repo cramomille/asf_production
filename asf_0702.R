@@ -90,25 +90,22 @@ mf_label(z[[2]], var = "label")
 #                      "low_middle", "middle_middle", "high_middle", 
 #                      "low_high", "middle_high", "high_high"))
 
-
-
 d <- c[c$tx_menpauvre <= median(c$tx_menpauvre, na.rm = TRUE), ]
 e <- c[c$tx_menpauvre > median(c$tx_menpauvre, na.rm = TRUE), ]
 
 class_1 <- function(x) {
   cut(x,
-      breaks = c(min(x, na.rm = TRUE), 16.8, 22.6, max(x, na.rm = TRUE)),
+      breaks = c(min(x, na.rm = TRUE), 16.8, 22.6, max(x, na.rm = TRUE)), 
       labels = c("l", "m", "h"),
       include.lowest = TRUE)
 }
 
 class_2 <- function(x) {
   cut(x,
-      breaks = c(min(x, na.rm = TRUE), 2.967, 3.225, 3.786, max(x, na.rm = TRUE)),
+      breaks = c(min(x, na.rm = TRUE), 2.967, 3.225, 3.786, max(x, na.rm = TRUE)), # mediane, 75 % = 3.430
       labels = c("s", "l", "m", "h"),
       include.lowest = TRUE)
 }
-
 
 e$typo_pauvr <- class_1(e$tx_menpauvre)
 e$typo_inter <- class_2(e$interd)
