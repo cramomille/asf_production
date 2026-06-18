@@ -23,7 +23,7 @@ tabl <- mar$tabl
 geom <- mar$geom
 
 fond <- asf_fond(geom, tabl, by = "IRISF_CODE", maille = "IRISrD_CODE", keep = "IRISrD_LIB")
-fond <- asf_drom(fond)
+# fond <- asf_drom(fond)
 
 fond_01 <- asf_simplify(fond, keep = 0.1)
 fond_05 <- asf_simplify(fond, keep = 0.5)
@@ -36,7 +36,10 @@ z <- asf_zoom(f = fond_09,
 
 x <- st_read("input/asf_0702/pauvre.gpkg")
 x <- st_drop_geometry(x)
-c <- asf_fondata(f = fond_01, d = x, z = z[[1]], by = "IRISrD_CODE")
+x <- x[, c(1, 2, 4)]
+c <- asf_fondata(f = fond_01, d = x, 
+                 # z = z[[1]], 
+                 by = "IRISrD_CODE")
 
 # c <- st_transform(c, crs = 4326)
 # sum(nchar(c$tx_menpauvre), na.rm = TRUE) - sum(nchar(x$tx_menpauvre), na.rm = TRUE)
@@ -54,8 +57,6 @@ pal <- c("#ea5289",
 mf_map(c, var = "tx_menpauvre", type = "choro", 
        breaks = quantile(c$tx_menpauvre, probs = c(0, 1/6, 2/6, 3/6, 4/6, 5/6, 1), na.rm = TRUE),
        pal = rev(pal), border = NA)
-mf_label(z[[2]], var = "label")
-
 
 
 pal <- c("#f59c00", 
@@ -68,7 +69,6 @@ pal <- c("#f59c00",
 mf_map(c, var = "interd", type = "choro", 
        breaks = quantile(c$interd, probs = c(0, 1/6, 2/6, 3/6, 4/6, 5/6, 1), na.rm = TRUE),
        pal = rev(pal), border = NA)
-mf_label(z[[2]], var = "label")
 
 
 # pal <- c(
@@ -103,7 +103,7 @@ class_1 <- function(x) {
 class_2 <- function(x) {
   cut(x,
       breaks = c(min(x, na.rm = TRUE), 2.967, 3.225, 3.786, max(x, na.rm = TRUE)), # mediane, 75 % = 3.430
-      labels = c("s", "l", "m", "h"),
+      labels = c("j", "l", "m", "h"),
       include.lowest = TRUE)
 }
 
@@ -113,9 +113,9 @@ e$typo_inter <- class_2(e$interd)
 e$typo_class <- paste0(e$typo_inter, e$typo_pauvr) 
 
 pal <- c(
-  "sl" = "#feebdc",
-  "sm" = "#f8c8d8",
-  "sh" = "#f087b0",
+  "jl" = "#feebdc",
+  "jm" = "#f8c8d8",
+  "jh" = "#f087b0",
   
   "ll" = "#feebdc", 
   "lm" = "#f8c8d8", 
@@ -142,5 +142,49 @@ mf_map(e, "typo_class",
        pal = pal, 
        border = NA, 
        leg_pos = "topright",
-       val_order = c("sl", "sm", "sh", "ll", "lm", "lh", "ml", "mm", "mh", "hl", "hm", "hh"),
+       val_order = c("jl", "jm", "jh", "ll", "lm", "lh", "ml", "mm", "mh", "hl", "hm", "hh"),
        add = TRUE)
+
+
+
+
+head(d)
+head(e)
+
+brks <- quantile(
+  d$tx_menpauvre,
+  probs = c(0, 1/3, 2/3, 1),
+  na.rm = TRUE
+)
+
+d$typo_class <- cut(
+  d$tx_menpauvre,
+  breaks = brks,
+  include.lowest = TRUE,
+  labels = c(1, 2, 3)
+)
+
+d$typo_class <- as.character(d$typo_class)
+
+d <- d[, c(1, 3:4, 6)]
+e <- e[, c(1, 3:4, 8)]
+
+str(d$typo_class)
+str(e$typo_class)
+
+k <- rbind(d, e)
+k <- st_drop_geometry(k)
+
+names(k)
+
+k$typo_class[k$typo_class == "NANA"] <- NA
+k$typo_class[k$tx_menpauvre == 0] <- NA
+k$tx_menpauvre[k$tx_menpauvre == 0] <- NA
+
+
+m <- asf_fondata(f = fond_01, d = k, 
+                 # z = z[[1]], 
+                 by = "IRISrD_CODE")
+m <- st_transform(m, crs = 4326)
+sum(nchar(m$tx_menpauvre), na.rm = TRUE) - sum(nchar(x$tx_menpauvre), na.rm = TRUE)
+st_write(m, "planche_0702.geojson")
