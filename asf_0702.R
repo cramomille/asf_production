@@ -23,7 +23,7 @@ tabl <- mar$tabl
 geom <- mar$geom
 
 fond <- asf_fond(geom, tabl, by = "IRISF_CODE", maille = "IRISrD_CODE", keep = "IRISrD_LIB")
-# fond <- asf_drom(fond)
+fond <- asf_drom(fond)
 
 fond_01 <- asf_simplify(fond, keep = 0.1)
 fond_05 <- asf_simplify(fond, keep = 0.5)
@@ -90,9 +90,12 @@ mf_map(c, var = "interd", type = "choro",
 #                      "low_middle", "middle_middle", "high_middle", 
 #                      "low_high", "middle_high", "high_high"))
 
-d <- c[c$tx_menpauvre <= median(c$tx_menpauvre, na.rm = TRUE), ]
-e <- c[c$tx_menpauvre > median(c$tx_menpauvre, na.rm = TRUE), ]
 
+# separation sur la mediane
+d <- c[c$tx_menpauvre <= 13.3, ]
+e <- c[c$tx_menpauvre > 13.3, ]
+
+# classif des taux de menages pauvres
 class_1 <- function(x) {
   cut(x,
       breaks = c(min(x, na.rm = TRUE), 16.8, 22.6, max(x, na.rm = TRUE)), 
@@ -100,10 +103,11 @@ class_1 <- function(x) {
       include.lowest = TRUE)
 }
 
+# classif des rapports interdecile
 class_2 <- function(x) {
   cut(x,
-      breaks = c(min(x, na.rm = TRUE), 2.967, 3.225, 3.786, max(x, na.rm = TRUE)), # mediane, 75 % = 3.430
-      labels = c("j", "l", "m", "h"),
+      breaks = c(min(x, na.rm = TRUE), 3.225177, 3.785744, max(x, na.rm = TRUE)), # mediane, 75 % = 3.430
+      labels = c("l", "m", "h"),
       include.lowest = TRUE)
 }
 
@@ -113,10 +117,6 @@ e$typo_inter <- class_2(e$interd)
 e$typo_class <- paste0(e$typo_inter, e$typo_pauvr) 
 
 pal <- c(
-  "jl" = "#feebdc",
-  "jm" = "#f8c8d8",
-  "jh" = "#f087b0",
-  
   "ll" = "#feebdc", 
   "lm" = "#f8c8d8", 
   "lh" = "#f087b0", 
@@ -131,18 +131,18 @@ pal <- c(
 )
 
 mf_map(d, "tx_menpauvre", 
-       type = "choro",
-       breaks = quantile(d$tx_menpauvre, probs = c(0, 1/3, 2/3, 1), na.rm = TRUE),
-       pal = c("#95a6b1", "#b7c6cf", "#dae0e3"),
-       border = NA,
+       type = "choro", 
+       breaks = c(0, 7.8, 10.4, 13.31), 
+       pal = c("#95a6b1", "#b7c6cf", "#dae0e3"), 
+       border = NA, 
        leg_pos = "topleft")
 
 mf_map(e, "typo_class", 
        type = "typo", 
        pal = pal, 
        border = NA, 
-       leg_pos = "topright",
-       val_order = c("jl", "jm", "jh", "ll", "lm", "lh", "ml", "mm", "mh", "hl", "hm", "hh"),
+       leg_pos = "topright", 
+       val_order = c("ll", "lm", "lh", "ml", "mm", "mh", "hl", "hm", "hh"), 
        add = TRUE)
 
 
@@ -151,15 +151,9 @@ mf_map(e, "typo_class",
 head(d)
 head(e)
 
-brks <- quantile(
-  d$tx_menpauvre,
-  probs = c(0, 1/3, 2/3, 1),
-  na.rm = TRUE
-)
-
 d$typo_class <- cut(
   d$tx_menpauvre,
-  breaks = brks,
+  breaks = c(2.609194, 2.779585),
   include.lowest = TRUE,
   labels = c(1, 2, 3)
 )
