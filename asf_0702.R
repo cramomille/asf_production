@@ -29,9 +29,9 @@ fond_01 <- asf_simplify(fond, keep = 0.1)
 fond_05 <- asf_simplify(fond, keep = 0.5)
 fond_09 <- asf_simplify(fond, keep = 0.9)
 
-z <- asf_zoom(f = fond_09,
-              places = c("5", "4", "Dijon", "Reims", "Rouen"),
-              nb_cols = 7)
+# z <- asf_zoom(f = fond_09,
+#               places = c("5", "4", "Dijon", "Reims", "Rouen"),
+#               nb_cols = 7)
 
 
 x <- st_read("input/asf_0702/pauvre.gpkg")
@@ -54,8 +54,9 @@ pal <- c("#ea5289",
          "#b7c6cf", 
          "#95a6b1")
 
+quantile(c$tx_menpauvre, probs = c(0, 1/6, 2/6, 3/6, 4/6, 5/6, 1), na.rm = TRUE)
 mf_map(c, var = "tx_menpauvre", type = "choro", 
-       breaks = quantile(c$tx_menpauvre, probs = c(0, 1/6, 2/6, 3/6, 4/6, 5/6, 1), na.rm = TRUE),
+       breaks = c(0, 7.8, 10.4, 13.3, 16.8, 22.6, 72.3),
        pal = rev(pal), border = NA)
 
 
@@ -66,34 +67,16 @@ pal <- c("#f59c00",
          "#b7c6cf", 
          "#95a6b1")
 
+quantile(c$interd, probs = c(0, 1/6, 2/6, 3/6, 4/6, 5/6, 1), na.rm = TRUE)
 mf_map(c, var = "interd", type = "choro", 
-       breaks = quantile(c$interd, probs = c(0, 1/6, 2/6, 3/6, 4/6, 5/6, 1), na.rm = TRUE),
+       breaks = c(1, 2.6, 2.8, 3, 3.2, 3.8, 1500),
        pal = rev(pal), border = NA)
 
 
-# pal <- c(
-#   "low_low" =       "#feebdc", 
-#   "middle_low" =    "#ffe596", 
-#   "high_low" =      "#ffce44", 
-#   
-#   "low_middle" =    "#f8c8d8", 
-#   "middle_middle" = "#f8b999", 
-#   "high_middle" =   "#f07f3c", 
-#   
-#   "low_high" =      "#f087b0", 
-#   "middle_high" =   "#e84250", 
-#   "high_high" =     "#a6393a"
-# )
-# 
-# mf_map(c, "class", type = "typo", pal = pal, border = NA, 
-#        val_order = c("low_low", "middle_low", "high_low", 
-#                      "low_middle", "middle_middle", "high_middle", 
-#                      "low_high", "middle_high", "high_high"))
-
 
 # separation sur la mediane
-d <- c[c$tx_menpauvre <= 13.3, ]
-e <- c[c$tx_menpauvre > 13.3, ]
+e <- c[c$tx_menpauvre <= 13.3, ]
+p <- c[c$tx_menpauvre > 13.3, ]
 
 # classif des taux de menages pauvres
 class_1 <- function(x) {
@@ -106,15 +89,15 @@ class_1 <- function(x) {
 # classif des rapports interdecile
 class_2 <- function(x) {
   cut(x,
-      breaks = c(min(x, na.rm = TRUE), 3.225177, 3.785744, max(x, na.rm = TRUE)), # mediane, 75 % = 3.430
+      breaks = c(min(x, na.rm = TRUE), 3.2, 3.8, max(x, na.rm = TRUE)), # mediane, 75 % = 3.430
       labels = c("l", "m", "h"),
       include.lowest = TRUE)
 }
 
-e$typo_pauvr <- class_1(e$tx_menpauvre)
-e$typo_inter <- class_2(e$interd)
+p$typo_pauvr <- class_1(p$tx_menpauvre)
+p$typo_inter <- class_2(p$interd)
 
-e$typo_class <- paste0(e$typo_inter, e$typo_pauvr) 
+p$typo_class <- paste0(p$typo_inter, p$typo_pauvr) 
 
 pal <- c(
   "ll" = "#feebdc", 
@@ -130,14 +113,14 @@ pal <- c(
   "hh" = "#a6393a"
 )
 
-mf_map(d, "tx_menpauvre", 
+mf_map(e, "tx_menpauvre", 
        type = "choro", 
-       breaks = c(0, 7.8, 10.4, 13.31), 
+       breaks = c(0, 7.8, 10.4, 13.3), 
        pal = c("#95a6b1", "#b7c6cf", "#dae0e3"), 
        border = NA, 
        leg_pos = "topleft")
 
-mf_map(e, "typo_class", 
+mf_map(p, "typo_class", 
        type = "typo", 
        pal = pal, 
        border = NA, 
@@ -148,37 +131,36 @@ mf_map(e, "typo_class",
 
 
 
-head(d)
-head(e)
-
-d$typo_class <- cut(
-  d$tx_menpauvre,
-  breaks = c(2.609194, 2.779585),
+# Jointure entre les deux cartes
+e$typo_class <- cut(
+  e$tx_menpauvre,
+  breaks = c(0, 7.8, 10.4, 13.3),
   include.lowest = TRUE,
   labels = c(1, 2, 3)
 )
 
-d$typo_class <- as.character(d$typo_class)
+e$typo_class <- as.character(e$typo_class)
 
-d <- d[, c(1, 3:4, 6)]
-e <- e[, c(1, 3:4, 8)]
+e <- e[, c(1, 3:4, 6)]
+p <- p[, c(1, 3:4, 8)]
 
-str(d$typo_class)
-str(e$typo_class)
 
-k <- rbind(d, e)
+# Objet final
+k <- rbind(e, p)
 k <- st_drop_geometry(k)
-
-names(k)
+k <- k[!is.na(k$IRISrD_CODE), ]
 
 k$typo_class[k$typo_class == "NANA"] <- NA
 k$typo_class[k$tx_menpauvre == 0] <- NA
 k$tx_menpauvre[k$tx_menpauvre == 0] <- NA
 
 
-m <- asf_fondata(f = fond_01, d = k, 
-                 # z = z[[1]], 
+m <- asf_fond(geom, tabl, by = "IRISF_CODE", maille = "IRISrD_CODE", keep = "IRISrD_LIB")
+m <- asf_simplify(m, keep = 0.1)
+
+m <- asf_fondata(f = m, d = k,
                  by = "IRISrD_CODE")
+
 m <- st_transform(m, crs = 4326)
 sum(nchar(m$tx_menpauvre), na.rm = TRUE) - sum(nchar(x$tx_menpauvre), na.rm = TRUE)
 st_write(m, "planche_0702.geojson")
