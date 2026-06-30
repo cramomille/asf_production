@@ -403,3 +403,28 @@ asf_plot_typo(d = tmp, vars = "typo_class", typo = c("TAAV2017", "CATEAAV2020"),
 asf_plot_typo(d = tmp, vars = "typo_class", typo = c("TAAV2017", "CATEAAV2020"), 
               order.v = c("ll", "lm", "ml", "mm", "lh", "mh", "hl", "hm", "hh"),
               pal = pal, eff = TRUE)
+
+
+# mar <- asf_mar(
+#   md = "iris_xxxx", 
+#   ma = "iris_r2", 
+#   geom = TRUE, 
+#   dir = "input/mar/"
+# )
+# 
+# tabl <- mar$tabl
+# geom <- mar$geom
+# 
+# fond <- asf_fond(geom, tabl, by = "IRISF_CODE", maille = "IRISrD_CODE", keep = "COMF_CODE")
+# fond_09 <- asf_simplify(fond, keep = 0.9)
+# 
+# z <- asf_zoom(f = fond_09, 
+#               places = c("5", "4", "Dijon", "Reims", "Rouen"), 
+#               # coords = c(2.584, 49.207), labels = "Senlis", 
+#               nb_cols = 7)
+# 
+# l <- asf_fond(z[[1]], maille = "COMF_CODE")
+# ls <- asf_borders(l, by = "COMF_CODE", keep = 0.5)
+# 
+# 
+# mf_map(ls)
