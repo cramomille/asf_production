@@ -29,16 +29,16 @@ fond_01 <- asf_simplify(fond, keep = 0.1)
 fond_05 <- asf_simplify(fond, keep = 0.5)
 fond_09 <- asf_simplify(fond, keep = 0.9)
 
-# z <- asf_zoom(f = fond_09,
-#               places = c("5", "4", "Dijon", "Reims", "Rouen"),
-#               nb_cols = 7)
+z <- asf_zoom(f = fond_09,
+              places = c("Paris", "Lyon", "Marseille", "Lille", "Toulouse"),
+              nb_cols = 5)
 
 
 x <- st_read("input/asf_0702/pauvre.gpkg")
 x <- st_drop_geometry(x)
 x <- x[, c(1, 2, 4)]
 c <- asf_fondata(f = fond_01, d = x, 
-                 # z = z[[1]], 
+                 z = z[[1]],
                  by = "IRISrD_CODE")
 
 # c <- st_transform(c, crs = 4326)
